@@ -24,3 +24,8 @@ Thumbs.db
 .vscode/launch.json
 .vscode/tasks.json
 .vscode/dbatlas.code-workspace
+
+# Temporary Office files
+~$*.docx
+~$*.doc
+
