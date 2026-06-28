@@ -29,7 +29,7 @@
       "step_id": "xe_deadlock_summary",
       "description": "Deadlock event summary from Extended Events ring buffer",
       "script_ref": "scripts/sqlserver/xe_deadlock_summary.sql",
-      "mock_data_key": "sqlserver/deadlock/xe_deadlock_summary.default.json",
+      "mock_data_key": "sqlserver/deadlock_analysis/xe_deadlock_summary.default.json",
       "parameters": [],
       "result_format": "tabular",
       "typical_next": [
@@ -47,7 +47,7 @@
       "step_id": "xe_deadlock_detail",
       "description": "Full deadlock chain \u2014 victim/survivor, resources, SQL text",
       "script_ref": "scripts/sqlserver/xe_deadlock_detail.sql",
-      "mock_data_key": "sqlserver/deadlock/xe_deadlock_detail.default.json",
+      "mock_data_key": "sqlserver/deadlock_analysis/xe_deadlock_detail.default.json",
       "parameters": [
         "deadlock_id"
       ],
@@ -67,7 +67,7 @@
       "step_id": "deadlock_index_analysis",
       "description": "Index coverage analysis on deadlocked tables",
       "script_ref": "scripts/sqlserver/deadlock_index_analysis.sql",
-      "mock_data_key": "sqlserver/deadlock/deadlock_index_analysis.default.json",
+      "mock_data_key": "sqlserver/deadlock_analysis/deadlock_index_analysis.default.json",
       "parameters": [],
       "result_format": "tabular",
       "typical_next": [
