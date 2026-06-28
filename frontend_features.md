@@ -60,9 +60,9 @@ This file documents the existing frontend features, UI guidelines, and serves as
 
 *Add new frontend enhancement requests in this section:*
 
-- [ ] **FE-001**: Implement filter/search bar in the Session History sidebar.
-- [ ] **FE-002**: Add a visual playbook graph view (e.g., via React Flow) showing current node highlight.
-- [ ] **FE-003**: Create a light/dark mode theme selector.
+- [x] **FE-001**: Implement filter/search bar in the Session History sidebar.
+- [x] **FE-002**: Add a visual playbook graph view (e.g., via React Flow) showing current node highlight.
+- [x] **FE-003**: Create a light/dark mode theme selector.
 - [x] **FE-004**: Adjust the diagnostic and history buttons on the homepage to be closer to the center of the left column.
 - [x] **FE-005**: Hide the top-left header logo when the main homepage logo with the words "DBAtlas" is active on the screen.
 

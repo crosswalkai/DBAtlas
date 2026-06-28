@@ -55,7 +55,7 @@ export function InputForm({ onSubmit, loading }: Props) {
             />
           </div>
           <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-faint)', letterSpacing: '0.02em', marginBottom: 14 }}>
-            Database Agentic Troubleshooting Advisor
+            <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>D</span>ata<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>b</span>ase <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>gentic <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>T</span>roub<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>l</span>eshooting <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>dvi<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>s</span>or
           </div>
           <h1 style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             New diagnostic session

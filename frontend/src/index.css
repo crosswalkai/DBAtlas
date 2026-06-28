@@ -11,6 +11,7 @@
   --warning: #D97706; --warning-light: #FFFBEB; --warning-border: #FDE68A;
   --danger: #DC2626; --danger-light: #FEF2F2; --danger-border: #FECACA;
   --purple: #7C3AED; --purple-light: #F5F3FF; --purple-border: #DDD6FE;
+  --brand-teal: #0C7B83;
   --oracle-bg: #FFF3EF; --oracle-text: #9A3412; --oracle-border: #FDBA9A;
   --sqlserver-bg: #EFF6FF; --sqlserver-text: #1E40AF; --sqlserver-border: #BFDBFE;
   --postgres-bg: #F0FDF4; --postgres-text: #166534; --postgres-border: #BBF7D0;
@@ -42,3 +43,62 @@ html, body, #root { height: 100%; background: var(--surface-0); color: var(--tex
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-in { animation: fadeIn 0.25s ease-out; }
+
+/* Dark Theme Variables */
+[data-theme='dark'] {
+  --surface-0: #0b0f19;
+  --surface-1: #111827;
+  --surface-2: #1f2937;
+  --surface-3: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-faint: #6b7280;
+  --border: #374151;
+  --border-mid: #4b5563;
+  
+  --accent: #3b82f6;
+  --accent-light: #172554;
+  --accent-border: #1e3a8a;
+  --accent-hover: #60a5fa;
+  --on-accent: #ffffff;
+  
+  --success: #10b981;
+  --success-light: #022c22;
+  --success-border: #064e3b;
+  
+  --warning: #f59e0b;
+  --warning-light: #451a03;
+  --warning-border: #78350f;
+  
+  --danger: #ef4444;
+  --danger-light: #450a0a;
+  --danger-border: #7f1d1d;
+  
+  --purple: #8b5cf6;
+  --purple-light: #2e1065;
+  --purple-border: #4c1d95;
+  --brand-teal: #14B8A6;
+
+  --oracle-bg: #451a03;
+  --oracle-text: #f97316;
+  --oracle-border: #78350f;
+
+  --sqlserver-bg: #172554;
+  --sqlserver-text: #3b82f6;
+  --sqlserver-border: #1e3a8a;
+
+  --postgres-bg: #022c22;
+  --postgres-text: #10b981;
+  --postgres-border: #065f46;
+
+  --mongo-bg: #022c22;
+  --mongo-text: #10B981;
+  --mongo-border: #064E3B;
+}
+
+/* Smooth Transitions for Theme Toggling */
+html, body, #root, header, aside, nav, main, input, textarea, button, select, .card {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+

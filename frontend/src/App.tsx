@@ -5,6 +5,7 @@ import { CheckpointRail } from './components/CheckpointRail';
 import { CheckpointApprovalPanel } from './components/CheckpointApprovalPanel';
 import { DiagnosticReport } from './components/DiagnosticReport';
 import { SessionHistory } from './components/SessionHistory';
+import { PlaybookGraph } from './components/PlaybookGraph';
 import { Badge, Spinner, SeverityBadge, Button } from './components/ui';
 
 type ActiveView = 'diagnose' | 'history';
@@ -153,7 +154,7 @@ function LoginScreen({ onCancel }: { onCancel: () => void }) {
             <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 40 }} />
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)', letterSpacing: '0.04em' }}>
-            Database Agentic Troubleshooting Advisor
+            <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>D</span>ata<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>b</span>ase <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>gentic <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>T</span>roub<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>l</span>eshooting <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>dvi<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>s</span>or
           </div>
         </div>
 
@@ -307,6 +308,17 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => 
+    (localStorage.getItem('theme') as any) || 'light'
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
   const isIdle = phase === 'idle';
   const isRunning = ['classifying', 'executing', 'evaluating', 'pending_approval', 'analyzing'].includes(phase);
   const isComplete = phase === 'complete';
@@ -447,6 +459,23 @@ export default function App() {
 
         <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
 
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 28, height: 28, borderRadius: 'var(--radius)',
+            border: '1px solid var(--border)', background: 'transparent',
+            cursor: 'pointer', fontSize: 13, transition: 'all 0.15s',
+            color: 'var(--text-muted)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+
         {/* Help */}
         <button
           onClick={() => setShowHelp(v => !v)}
@@ -541,6 +570,14 @@ export default function App() {
                         )}
                       </div>
                     </div>
+
+                    {/* Playbook Flow Graph */}
+                    <PlaybookGraph
+                      playbookId={state.playbookId}
+                      currentStep={state.currentStep}
+                      stepsExecuted={state.stepsExecuted}
+                      stepsSkipped={state.stepsSkipped}
+                    />
 
                     <div style={{ flex: 1, overflowY: 'auto' }}>
 
