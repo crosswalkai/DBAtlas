@@ -240,7 +240,7 @@ Two SQL Server playbooks — plan regression and stale statistics — are cross-
 
 # 6. Diagnostic Data Layer
 
-For the prototype, 46 mock data files simulate the tabular output of diagnostic steps. Each carries a narrative hint that steers the AI toward the intended diagnostic story. In production, these files are replaced by read-only connections to the real databases, with no change to the architecture.
+For the prototype, 51 mock data files simulate the tabular output of diagnostic steps. Each carries a narrative hint that steers the AI toward the intended diagnostic story. In production, these files are replaced by read-only connections to the real databases, with no change to the architecture.
 
 ## 6.1 Data File Schema
 

@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-live-slowness-triage",
+  "step_id": "grafana_os_telemetry",
+  "step_description": "OS-level CPU, Memory, and Disk Latency telemetry from Grafana MCP",
+  "simulated_at": "2026-06-28T09:45:00Z",
+  "columns": ["timestamp", "cpu_utilization_pct", "disk_read_latency_ms", "disk_write_latency_ms", "network_retransmit_rate_pct"],
+  "rows": [
+    ["2026-06-28T09:40:00Z", 98.2, 8.4, 45.1, 0.1],
+    ["2026-06-28T09:45:00Z", 99.4, 9.1, 48.6, 0.0]
+  ],
+  "row_count": 2,
+  "narrative_hint": "[DEMO CONTEXT] Grafana OS telemetry shows CPU utilization at 99.4% and disk write latency spiked to 48.6ms. This indicates severe host-level resource contention. The database engine is starved of CPU and disk I/O because a virtualization backup job (snapshot snapshot-v88) is executing concurrently on the same hypervisor host physical disk array."
+}

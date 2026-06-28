@@ -22,7 +22,7 @@
     "sqlserver-top-consumers"
   ],
   "max_steps": 5,
-  "version": 1,
+  "version": 2,
   "author": "A. Pogaku",
   "steps": {
     "active_requests": {
@@ -33,14 +33,11 @@
       "parameters": [],
       "result_format": "tabular",
       "typical_next": [
-        "blocking_chains",
-        "top_wait_stats"
+        "blocking_chains"
       ],
       "interactive_hints": {
-        "blocking_chains": "Run when LCK_ waits are visible \u2014 maps the full blocking chain to identify the head blocker",
-        "top_wait_stats": "Run to see cumulative wait statistics since last restart \u2014 helps distinguish transient from persistent issues",
-        "query_store_top_consumers": "Run to identify the specific queries driving the current load",
-        "stop": "Stop here and generate the final analysis with results gathered so far"
+        "blocking_chains": "Run to map the full blocking chain to identify the head blocker",
+        "stop": "Stop here and generate the final analysis"
       },
       "safe_to_run_first": true,
       "max_rows": 25
@@ -53,31 +50,47 @@
       "parameters": [],
       "result_format": "tabular",
       "typical_next": [
-        "top_wait_stats",
-        "stop"
+        "grafana_os_telemetry"
       ],
       "interactive_hints": {
-        "top_wait_stats": "Run to see overall wait statistics context alongside the blocking analysis",
-        "stop": "Stop here and generate the final analysis with results gathered so far"
+        "grafana_os_telemetry": "Run to check host VM CPU and Disk latency metrics in Grafana MCP to verify resource contention",
+        "stop": "Stop here and generate the final analysis"
       },
       "safe_to_run_first": false,
       "max_rows": 20
     },
-    "top_wait_stats": {
-      "step_id": "top_wait_stats",
-      "description": "Top wait statistics since last SQL Server restart",
-      "script_ref": "scripts/sqlserver/top_wait_stats.sql",
-      "mock_data_key": "sqlserver/live_slowness/top_wait_stats.default.json",
+    "grafana_os_telemetry": {
+      "step_id": "grafana_os_telemetry",
+      "description": "OS-level CPU, Memory, and Disk Latency telemetry from Grafana MCP",
+      "script_ref": "mcp:grafana:get_system_metrics",
+      "mock_data_key": "sqlserver/live_slowness/grafana_os_telemetry.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "splunk_app_logs"
+      ],
+      "interactive_hints": {
+        "splunk_app_logs": "Run to query application log exception messages and connection pool metrics in Splunk MCP",
+        "stop": "Stop here and generate the final diagnostic analysis"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "splunk_app_logs": {
+      "step_id": "splunk_app_logs",
+      "description": "Application exception logs and connection pool stats from Splunk MCP",
+      "script_ref": "mcp:splunk:get_app_exceptions",
+      "mock_data_key": "sqlserver/live_slowness/splunk_app_logs.default.json",
       "parameters": [],
       "result_format": "tabular",
       "typical_next": [
         "stop"
       ],
       "interactive_hints": {
-        "stop": "Stop here and generate the final analysis with results gathered so far"
+        "stop": "Stop here and generate the final diagnostic analysis"
       },
       "safe_to_run_first": false,
-      "max_rows": 15
+      "max_rows": 30
     }
   }
 }

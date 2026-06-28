@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-live-slowness-triage",
+  "step_id": "splunk_app_logs",
+  "step_description": "Application exception logs and connection pool stats from Splunk MCP",
+  "simulated_at": "2026-06-28T09:45:00Z",
+  "columns": ["timestamp", "logger", "severity", "message", "count"],
+  "rows": [
+    ["2026-06-28T09:42:15Z", "com.crosswalk.db.PoolConnection", "ERROR", "Timeout expired obtaining connection from pool after 15000ms", 412],
+    ["2026-06-28T09:44:30Z", "com.crosswalk.api.CheckoutController", "ERROR", "java.sql.SQLTimeoutException: Operation timed out on lock query", 187]
+  ],
+  "row_count": 2,
+  "narrative_hint": "[DEMO CONTEXT] Splunk logs reveal massive application-level connection pool starvation (412 connection errors). Web servers are unable to acquire connections because DB transactions are running slowly due to host-level disk I/O queue backlog. This correlates database waits with app server exceptions."
+}

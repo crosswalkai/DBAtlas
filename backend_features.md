@@ -31,6 +31,10 @@ This file documents the existing backend capabilities, routing safety parameters
 - **Location**: `backend/app/services/claude_client.py`
 - **Details**: Performs 3 distinct prompt requests: intent classification, checkpoint evaluation, and final summary report generation.
 
+### Grafana & Splunk Telemetry Integration
+- **Location**: `backend/playbooks/sqlserver-live-slowness-triage.json` & `backend/mock_data/sqlserver/live_slowness/`
+- **Details**: Exposes OS metrics (CPU, Disk write latency) and application exception logs (connection pool errors) as whitelisted steps in the slowness triage playbook, enabling Claude to correlate host-level hardware issues and application pool starvation with database lock states.
+
 ---
 
 ## 2. Safety & Whitelist Constraints
