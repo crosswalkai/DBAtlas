@@ -2,11 +2,27 @@
   "id": "oracle-historical-awr",
   "dbms": "oracle",
   "intent_category": "historical_forensics",
-  "intent_tags": ["yesterday", "last night", "happened", "occurred", "6pm", "historical", "past", "forensics", "incident", "when", "what time", "spike", "slowdown"],
+  "intent_tags": [
+    "yesterday",
+    "last night",
+    "happened",
+    "occurred",
+    "6pm",
+    "historical",
+    "past",
+    "forensics",
+    "incident",
+    "when",
+    "what time",
+    "spike",
+    "slowdown"
+  ],
   "title": "Oracle Historical AWR Forensics",
   "description": "Post-incident analysis using AWR snapshots to reconstruct performance events",
   "entry_step": "awr_snapshot_finder",
-  "alternate_playbooks": ["oracle-live-slowness-triage"],
+  "alternate_playbooks": [
+    "oracle-live-slowness-triage"
+  ],
   "max_steps": 5,
   "version": 1,
   "author": "A. Sharma",
@@ -18,7 +34,9 @@
       "mock_data_key": "oracle/historical/awr_snapshot_finder.default.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["awr_wait_delta"],
+      "typical_next": [
+        "awr_wait_delta"
+      ],
       "interactive_hints": {
         "awr_wait_delta": "Run to see which wait events dominated during the incident window — this is the primary diagnostic step for historical forensics",
         "stop": "Stop here and generate the final analysis with results gathered so far"
@@ -31,9 +49,15 @@
       "description": "Wait event delta between AWR snapshot brackets",
       "script_ref": "scripts/oracle/awr_wait_delta.sql",
       "mock_data_key": "oracle/historical/awr_wait_delta.default.json",
-      "parameters": ["begin_snap_id", "end_snap_id"],
+      "parameters": [
+        "begin_snap_id",
+        "end_snap_id"
+      ],
       "result_format": "tabular",
-      "typical_next": ["awr_sql_delta", "stop"],
+      "typical_next": [
+        "awr_sql_delta",
+        "stop"
+      ],
       "interactive_hints": {
         "awr_sql_delta": "Run to identify which specific SQL statements drove the dominant wait events — essential for pinpointing the root cause application module",
         "stop": "Stop here if wait events alone are sufficient for your diagnosis"
@@ -46,9 +70,14 @@
       "description": "Top SQL by elapsed time delta between AWR snapshots",
       "script_ref": "scripts/oracle/awr_sql_delta.sql",
       "mock_data_key": "oracle/historical/awr_sql_delta.default.json",
-      "parameters": ["begin_snap_id", "end_snap_id"],
+      "parameters": [
+        "begin_snap_id",
+        "end_snap_id"
+      ],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "stop"
+      ],
       "interactive_hints": {
         "stop": "Stop here and generate the final analysis with results gathered so far"
       },

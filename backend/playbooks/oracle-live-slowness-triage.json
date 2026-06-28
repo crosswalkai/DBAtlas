@@ -2,11 +2,25 @@
   "id": "oracle-live-slowness-triage",
   "dbms": "oracle",
   "intent_category": "live_triage",
-  "intent_tags": ["slow", "slowness", "sluggish", "performance", "now", "current", "triage", "troubleshoot", "hanging", "waiting"],
+  "intent_tags": [
+    "slow",
+    "slowness",
+    "sluggish",
+    "performance",
+    "now",
+    "current",
+    "triage",
+    "troubleshoot",
+    "hanging",
+    "waiting"
+  ],
   "title": "Oracle Live Slowness Triage",
   "description": "Identify sessions, waits, and SQL causing current performance degradation",
   "entry_step": "session_summary",
-  "alternate_playbooks": ["oracle-top-consumers", "oracle-historical-awr"],
+  "alternate_playbooks": [
+    "oracle-top-consumers",
+    "oracle-historical-awr"
+  ],
   "max_steps": 5,
   "version": 2,
   "author": "A. Sharma",
@@ -18,7 +32,10 @@
       "mock_data_key": "oracle/live_slowness/session_summary.scenario-a.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["hot_sql_by_elapsed", "active_locks"],
+      "typical_next": [
+        "hot_sql_by_elapsed",
+        "active_locks"
+      ],
       "interactive_hints": {
         "session_summary": "Current step — already executed",
         "hot_sql_by_elapsed": "Run when active sessions show User I/O or CPU waits — identifies the specific SQL driving them",
@@ -37,7 +54,10 @@
       "mock_data_key": "oracle/live_slowness/hot_sql_by_elapsed.scenario-a.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["sql_execution_plan", "stop"],
+      "typical_next": [
+        "sql_execution_plan",
+        "stop"
+      ],
       "interactive_hints": {
         "sql_execution_plan": "Run to get the execution plan for the top sql_id — confirms whether a full table scan or bad index choice is the cause",
         "active_locks": "Run if lock contention also appeared in the session summary",
@@ -54,7 +74,9 @@
       "mock_data_key": "oracle/live_slowness/active_locks.scenario-a.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "stop"
+      ],
       "interactive_hints": {
         "hot_sql_by_elapsed": "Run alongside lock analysis to see if a specific SQL is both slow and holding locks",
         "stop": "Stop here and generate the final analysis with results gathered so far"
@@ -67,9 +89,13 @@
       "description": "Execution plan for a specific sql_id",
       "script_ref": "scripts/oracle/execution_plan.sql",
       "mock_data_key": "oracle/live_slowness/sql_execution_plan.scenario-a.json",
-      "parameters": ["sql_id"],
+      "parameters": [
+        "sql_id"
+      ],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "stop"
+      ],
       "interactive_hints": {
         "stop": "Stop here and generate the final analysis with results gathered so far"
       },
@@ -83,7 +109,9 @@
       "mock_data_key": "oracle/live_slowness/redo_log_activity.scenario-a.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "stop"
+      ],
       "interactive_hints": {
         "stop": "Stop here and generate the final analysis with results gathered so far"
       },

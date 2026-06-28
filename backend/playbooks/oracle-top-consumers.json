@@ -2,11 +2,25 @@
   "id": "oracle-top-consumers",
   "dbms": "oracle",
   "intent_category": "resource_profiling",
-  "intent_tags": ["top", "consumers", "resource", "cpu", "memory", "who", "what", "heaviest", "expensive", "worst", "v$sql"],
+  "intent_tags": [
+    "top",
+    "consumers",
+    "resource",
+    "cpu",
+    "memory",
+    "who",
+    "what",
+    "heaviest",
+    "expensive",
+    "worst",
+    "v$sql"
+  ],
   "title": "Oracle Top Resource Consumers",
   "description": "Identify top SQL by CPU, buffer gets, and elapsed time from v$sql",
   "entry_step": "sql_top_cpu_summary",
-  "alternate_playbooks": ["oracle-live-slowness-triage"],
+  "alternate_playbooks": [
+    "oracle-live-slowness-triage"
+  ],
   "max_steps": 4,
   "version": 1,
   "author": "A. Sharma",
@@ -18,7 +32,10 @@
       "mock_data_key": "oracle/top_consumers/sql_top_cpu_summary.default.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["top_sessions_cpu", "stop"],
+      "typical_next": [
+        "top_sessions_cpu",
+        "stop"
+      ],
       "interactive_hints": {
         "top_sessions_cpu": "Run to see which sessions and modules are driving the top SQL — maps SQL to application components",
         "stop": "Stop here and generate the final analysis with results gathered so far"
@@ -33,7 +50,9 @@
       "mock_data_key": "oracle/top_consumers/top_sessions_cpu.default.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "stop"
+      ],
       "interactive_hints": {
         "stop": "Stop here and generate the final analysis with results gathered so far"
       },
