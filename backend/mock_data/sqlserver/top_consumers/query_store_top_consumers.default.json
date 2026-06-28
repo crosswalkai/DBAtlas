@@ -1,0 +1,18 @@
+{
+  "scenario_id": "scenario-b",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-top-consumers",
+  "step_id": "query_store_top_consumers",
+  "step_description": "Query Store top consumers by CPU, duration, execution count",
+  "simulated_at": "2026-06-22T14:32:05Z",
+  "columns": ["query_id", "query_text_short", "avg_cpu_ms", "total_cpu_ms", "avg_duration_ms", "execution_count", "avg_logical_reads", "plan_count"],
+  "rows": [
+    [1842, "INSERT INTO FactSales SELECT ... FROM StagingSales JOIN ...", 4210.4, 884184, 5820.1, 210,  982400, 1],
+    [934,  "SELECT o.*, c.* FROM Orders o JOIN Customers c ON ...",       182.3,  364600, 210.4, 2000,  28400, 3],
+    [2201, "UPDATE Inventory SET quantity = quantity - @qty WHERE ...",    94.1,  188200, 101.2, 2000,   4200, 1],
+    [1105, "SELECT * FROM dbo.vw_SalesReport WHERE region = @region",     88.4,   88400, 210.8,  1000, 284000, 2],
+    [678,  "SELECT COUNT(*) FROM AuditLog WHERE created_at > @date",      12.4,   74400,  14.2, 6000,    840, 1]
+  ],
+  "row_count": 5,
+  "narrative_hint": "Query 1842 is the ETL INSERT — 884 seconds of total CPU across 210 executions averaging 4.2 seconds each and reading 982K rows per execution. Query 934 has 3 execution plans suggesting plan instability. Query 1105 is a view-based report query reading 284K rows per execution — likely the source of the shared lock waits blocking APP_USER sessions. Claude should flag both the ETL job (rescheduling + MAXDOP) and the report view query (missing index or parameterization issue) as the two primary issues."
+}

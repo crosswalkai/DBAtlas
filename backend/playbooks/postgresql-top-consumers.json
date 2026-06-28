@@ -1,0 +1,44 @@
+{
+  "id": "postgresql-top-consumers",
+  "dbms": "postgresql",
+  "intent_category": "resource_profiling",
+  "intent_tags": ["top", "consumers", "resource", "cpu", "memory", "who", "what", "heaviest", "expensive", "worst", "pg_stat_statements"],
+  "title": "PostgreSQL Top Resource Consumers",
+  "description": "Identify top queries by total time, calls, and rows using pg_stat_statements",
+  "entry_step": "pg_stat_summary",
+  "alternate_playbooks": ["postgresql-live-slowness-triage"],
+  "max_steps": 4,
+  "version": 1,
+  "author": "A. Sharma",
+  "steps": {
+    "pg_stat_summary": {
+      "step_id": "pg_stat_summary",
+      "description": "Top queries from pg_stat_statements by total time",
+      "script_ref": "scripts/postgresql/pg_stat_summary.sql",
+      "mock_data_key": "postgresql/top_consumers/pg_stat_summary.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["pg_table_bloat", "stop"],
+      "interactive_hints": {
+        "pg_table_bloat": "Run when seq_scan counts are high — checks for table bloat causing inefficient sequential scans",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 15
+    },
+    "pg_table_bloat": {
+      "step_id": "pg_table_bloat",
+      "description": "Table bloat and dead tuple analysis",
+      "script_ref": "scripts/postgresql/pg_table_bloat.sql",
+      "mock_data_key": "postgresql/top_consumers/pg_table_bloat.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

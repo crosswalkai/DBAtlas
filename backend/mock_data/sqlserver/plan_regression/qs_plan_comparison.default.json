@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-plan-regression",
+  "step_id": "qs_plan_comparison",
+  "step_description": "Side-by-side plan comparison for query_id 2841",
+  "simulated_at": "2026-06-22T09:00:05Z",
+  "columns": ["plan_id", "plan_type", "avg_duration_ms", "avg_cpu_ms", "avg_logical_reads", "plan_forcing_state", "last_used", "compile_time", "join_operator", "index_used", "estimated_rows", "actual_rows_last_exec"],
+  "rows": [
+    [8420, "Last Good Plan (pre-regression)", 48.2, 42.1, 1840, "Not forced", "2026-06-21 02:13:58", "2026-06-18 03:22:11", "Hash Join", "IX_Orders_Status_Date (covering)", 8420, 8418],
+    [8891, "Current Bad Plan (post-regression)", 4820.4, 4210.2, 984200, "Not forced — FORCE RECOMMENDED", "2026-06-22 08:59:44", "2026-06-21 02:14:22", "Nested Loop Join", "PK_Orders (clustered scan)", 1, 8418]
+  ],
+  "row_count": 2,
+  "narrative_hint": "The regression is definitively confirmed. Plan 8420 used a Hash Join with a covering index (IX_Orders_Status_Date) and estimated 8,420 rows correctly. Plan 8891 switched to a Nested Loop Join using the clustered index scan with a cardinality estimate of just 1 row — despite the actual row count being 8,418. This is a classic statistics-induced plan regression: the statistics update caused SQL Server to massively underestimate the row count, making the optimizer choose Nested Loops (optimal for small row counts) over Hash Join (optimal for large row counts). Plan 8420 should be forced immediately. Claude should generate the sp_query_store_force_plan command and explain the root cause clearly."
+}

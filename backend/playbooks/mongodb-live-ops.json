@@ -1,0 +1,60 @@
+{
+  "id": "mongodb-live-ops",
+  "dbms": "mongodb",
+  "intent_category": "live_triage",
+  "intent_tags": ["slow", "slowness", "performance", "now", "current", "triage", "troubleshoot", "operations", "queries", "hanging"],
+  "title": "MongoDB Live Operations Triage",
+  "description": "Identify slow operations, index usage issues, and resource consumption in MongoDB",
+  "entry_step": "current_op_summary",
+  "alternate_playbooks": [],
+  "max_steps": 4,
+  "version": 1,
+  "author": "A. Sharma",
+  "steps": {
+    "current_op_summary": {
+      "step_id": "current_op_summary",
+      "description": "Current operations from db.currentOp() — active queries and their duration",
+      "script_ref": "scripts/mongodb/current_op_summary.js",
+      "mock_data_key": "mongodb/live_ops/current_op_summary.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["server_status", "collection_stats"],
+      "interactive_hints": {
+        "server_status": "Run to get memory, connection, and operation counters from serverStatus()",
+        "collection_stats": "Run when slow ops are concentrated on a specific collection — checks index usage and collection size",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "server_status": {
+      "step_id": "server_status",
+      "description": "Server-wide counters — connections, memory, opcounters",
+      "script_ref": "scripts/mongodb/server_status.js",
+      "mock_data_key": "mongodb/live_ops/server_status.default.json",
+      "parameters": [],
+      "result_format": "json",
+      "typical_next": ["collection_stats", "stop"],
+      "interactive_hints": {
+        "collection_stats": "Run to drill into collection-level index and scan statistics",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "collection_stats": {
+      "step_id": "collection_stats",
+      "description": "Collection index usage and scan statistics",
+      "script_ref": "scripts/mongodb/collection_stats.js",
+      "mock_data_key": "mongodb/live_ops/collection_stats.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

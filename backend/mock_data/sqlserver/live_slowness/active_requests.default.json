@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-live-slowness-triage",
+  "step_id": "active_requests",
+  "step_description": "Active requests, wait types, and blocking chains",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["session_id", "login_name", "status", "wait_type", "wait_time_ms", "blocking_session_id", "cpu_time", "logical_reads", "sql_text_short"],
+  "rows": [
+    [58,  "ETL_USER",  "running",   "CXPACKET",  3820, 0,  38420, 892100, "INSERT INTO FactSales SELECT ..."],
+    [71,  "APP_USER",  "suspended", "LCK_M_S",   2100, 58,  1240,   8820, "SELECT o.* FROM Orders o WHERE ..."],
+    [83,  "APP_USER",  "suspended", "LCK_M_S",   2098, 58,  1180,   8640, "SELECT o.* FROM Orders o WHERE ..."],
+    [94,  "APP_USER",  "suspended", "LCK_M_S",   2095, 58,  1210,   8590, "SELECT o.* FROM Orders o WHERE ..."],
+    [102, "REPORT_USR","running",   "ASYNC_NETWORK_IO", 320, 0, 12400, 284000, "SELECT * FROM vw_SalesReport ..."]
+  ],
+  "row_count": 5,
+  "narrative_hint": "Session 58 (ETL_USER) is the head blocker with CXPACKET waits. Sessions 71, 83, and 94 are all blocked by session 58 with LCK_M_S waits. The blocking_session_id column confirms session 58 is blocking all three APP_USER sessions. Claude should identify session 58 as the root cause and recommend investigating the ETL job's locking behavior and schedule."
+}

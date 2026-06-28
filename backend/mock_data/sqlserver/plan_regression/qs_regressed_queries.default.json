@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-plan-regression",
+  "step_id": "qs_regressed_queries",
+  "step_description": "Query Store regressed queries",
+  "simulated_at": "2026-06-22T09:00:00Z",
+  "columns": ["query_id", "query_text_short", "regressed_since", "avg_duration_baseline_ms", "avg_duration_recent_ms", "degradation_factor", "execution_count_recent", "database_name"],
+  "rows": [
+    [2841, "SELECT o.order_id, o.total, c.name, c.email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE o.status = @status AND o.created_date > @date", "2026-06-21 02:14:00", 48.2, 4820.4, 100.0, 18420, "SalesDB"],
+    [1204, "SELECT p.product_id, p.name, SUM(oi.quantity) as total_sold FROM Products p JOIN OrderItems oi ON p.product_id = oi.product_id GROUP BY p.product_id, p.name", "2026-06-21 02:18:00", 284.4, 1840.2, 6.5, 420, "SalesDB"],
+    [3102, "UPDATE CustomerStats SET last_purchase_date = @date, total_orders = total_orders + 1 WHERE customer_id = @cid", "2026-06-21 02:20:00", 2.1, 8.4, 4.0, 48420, "SalesDB"]
+  ],
+  "row_count": 3,
+  "narrative_hint": "Query 2841 is the critical regression — it went from 48ms to 4,820ms average (100x degradation) starting at 02:14 on June 21, right after the nightly maintenance window. This is a catastrophic plan regression. The timestamp aligns precisely with the nightly auto-update statistics job which runs at 02:00. Queries 1204 and 3102 also regressed at the same time, all in SalesDB, strongly suggesting a statistics update on a shared table (likely Orders or Customers) triggered plan changes across multiple queries. Claude should identify query 2841 as the primary regression and proceed to plan comparison."
+}

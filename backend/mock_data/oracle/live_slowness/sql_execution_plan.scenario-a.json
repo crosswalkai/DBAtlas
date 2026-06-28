@@ -1,0 +1,17 @@
+{
+  "scenario_id": "scenario-a",
+  "dbms": "oracle",
+  "playbook_id": "oracle-live-slowness-triage",
+  "step_id": "sql_execution_plan",
+  "step_description": "Execution plan for sql_id 8fk2m9vbqt3dx",
+  "simulated_at": "2026-06-22T14:28:10Z",
+  "columns": ["ID", "OPERATION", "OBJECT_NAME", "ROWS", "BYTES", "COST", "ACCESS_PREDICATES"],
+  "rows": [
+    [0, "SELECT STATEMENT",        null,       null,    null,   89240, null],
+    [1, "  HASH JOIN",             null,       15420,  1847040, 89240, null],
+    [2, "    TABLE ACCESS FULL",   "ORDERS",   982000, 94272000, 87800, "CUSTOMER_ID=:B1 AND STATUS=:B2"],
+    [3, "    INDEX RANGE SCAN",    "PK_CUSTOMERS", 1,  120,    2, "CUSTOMER_ID=:B1"]
+  ],
+  "row_count": 4,
+  "narrative_hint": "The execution plan confirms a TABLE ACCESS FULL on the ORDERS table — 982,000 rows estimated, cost 87,800. The predicates are CUSTOMER_ID and STATUS but no composite index exists covering both. Oracle is doing a full scan of 982K rows to find the matching subset. The fix is a composite index on (CUSTOMER_ID, STATUS) or (CUSTOMER_ID, STATUS, CREATED_AT) if the query also filters by date. Claude should provide a specific CREATE INDEX statement and note the urgency given current active sessions."
+}

@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-deadlock-analysis",
+  "step_id": "xe_deadlock_summary",
+  "step_description": "Deadlock event summary from Extended Events",
+  "simulated_at": "2026-06-22T14:00:00Z",
+  "columns": ["deadlock_id", "occurrence_time", "victim_spid", "victim_login", "victim_app", "survivor_spid", "survivor_login", "deadlock_type", "object_name", "occurrences_last_hour"],
+  "rows": [
+    ["DL-20260622-001", "2026-06-22 13:42:18", 284,  "app_user",   "OrderService",  291, "app_user",   "Cycle", "Orders",          8],
+    ["DL-20260622-002", "2026-06-22 13:44:02", 301,  "app_user",   "OrderService",  298, "app_user",   "Cycle", "Orders",          8],
+    ["DL-20260622-003", "2026-06-22 13:46:44", 312,  "app_user",   "OrderService",  308, "app_user",   "Cycle", "Orders",          8],
+    ["DL-20260622-004", "2026-06-22 13:29:11", 184,  "report_user","SSRS_Reports",  192, "app_user",   "Cycle", "OrderItems",      2],
+    ["DL-20260622-005", "2026-06-22 13:51:33", 328,  "app_user",   "OrderService",  332, "app_user",   "Cycle", "Orders",          8]
+  ],
+  "row_count": 5,
+  "narrative_hint": "8 deadlocks in the last hour, all involving the Orders table between OrderService sessions. This is a high-frequency, repeating deadlock cycle — not a one-time event. The pattern of two app_user sessions from the same application (OrderService) deadlocking on Orders is classic: the application is updating Orders in different row orders in concurrent transactions. The SSRS_Reports deadlock on OrderItems is a separate, lower-frequency issue. Claude should focus on the Orders deadlock cycle as the primary problem and request the detailed chain to identify the exact resource conflict."
+}

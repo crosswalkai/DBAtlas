@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-live-slowness-triage",
+  "step_id": "blocking_chains",
+  "step_description": "Blocking session chains and lock wait details",
+  "simulated_at": "2026-06-22T14:32:03Z",
+  "columns": ["blocker_session_id", "blocker_login", "blocked_session_id", "blocked_login", "lock_type", "wait_time_s", "resource_description", "blocker_sql_short"],
+  "rows": [
+    [58, "ETL_USER", 71,  "APP_USER", "KEY", 2.1, "RID: 5:1:182844", "INSERT INTO FactSales SELECT ..."],
+    [58, "ETL_USER", 83,  "APP_USER", "KEY", 2.1, "RID: 5:1:182844", "INSERT INTO FactSales SELECT ..."],
+    [58, "ETL_USER", 94,  "APP_USER", "KEY", 2.1, "RID: 5:1:182844", "INSERT INTO FactSales SELECT ..."]
+  ],
+  "row_count": 3,
+  "narrative_hint": "All three blocked sessions are waiting on the same resource — RID 5:1:182844 which is a row in the FactSales table being locked by the ETL INSERT. This is a single-head blocker pattern with no secondary blockers. The ETL is holding a key lock while inserting and the OLTP app queries are trying to read the same rows. Claude should recommend either scheduling the ETL outside business hours or using READ_COMMITTED_SNAPSHOT isolation to eliminate the lock conflict."
+}

@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-stale-statistics",
+  "step_id": "stats_histogram_detail",
+  "step_description": "Histogram for Orders.IX_Orders_Status_Date (last updated 47 days ago)",
+  "simulated_at": "2026-06-22T10:00:08Z",
+  "columns": ["range_high_key", "range_rows", "eq_rows", "distinct_range_rows", "avg_range_rows", "histogram_note"],
+  "rows": [
+    ["2026-04-01", 284200, 42000, 84, 3383, "Histogram boundary — accurate for dates up to April 1"],
+    ["2026-04-15", 420400, 84000, 120, 3503, "Histogram boundary — accurate for April 1-15"],
+    ["2026-05-05", 840200, 120000, 180, 4668, "LAST HISTOGRAM STEP — statistics were updated here"],
+    [null, null, null, null, null, "ALL DATES AFTER 2026-05-05 ARE UNKNOWN TO THE OPTIMIZER"],
+    ["[Current data]", "[30M rows from May 6 to June 22]", "[Not in histogram]", "[Unknown]", "[Unknown]", "The optimizer has NO histogram data for the last 47 days of data — it falls back to density vector estimates, producing the 1-row estimate for recent date ranges"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "The histogram definitively shows the problem. The last histogram step covers data up to May 5 — 47 days ago. Any query filtering on created_date > '2026-05-05' (which is the vast majority of current queries) falls off the end of the histogram. The optimizer falls back to the density vector (1 / number of distinct values) which produces a 1-row estimate for 840,000 actual rows. The fix is UPDATE STATISTICS dbo.Orders IX_Orders_Status_Date WITH FULLSCAN. After the update, the histogram will cover current data and the optimizer will correctly estimate 840K rows, switching from Nested Loops to Hash Join and reducing query time from 4,820ms to approximately 48ms. Claude should present this as an air-tight diagnosis with a clear before/after expectation."
+}

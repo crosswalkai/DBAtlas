@@ -1,0 +1,88 @@
+{
+  "id": "sqlserver-stale-statistics",
+  "dbms": "sqlserver",
+  "intent_category": "historical_forensics",
+  "intent_tags": [
+    "stale",
+    "statistics",
+    "cardinality",
+    "estimate",
+    "row estimate",
+    "bad estimate",
+    "wrong rows",
+    "nested loop",
+    "hash join",
+    "slow query",
+    "stats",
+    "out of date",
+    "recompile"
+  ],
+  "title": "SQL Server Stale Statistics Investigation",
+  "description": "Identify stale statistics causing bad cardinality estimates, wrong join strategies, and query degradation",
+  "entry_step": "stats_staleness_scan",
+  "alternate_playbooks": [
+    "sqlserver-plan-regression"
+  ],
+  "max_steps": 4,
+  "version": 2,
+  "author": "Q. Miller",
+  "steps": {
+    "stats_staleness_scan": {
+      "step_id": "stats_staleness_scan",
+      "description": "Statistics staleness scan \u2014 tables with high modification counters and old stats",
+      "script_ref": "scripts/sqlserver/stats_staleness_scan.sql",
+      "mock_data_key": "sqlserver/stale_statistics/stats_staleness_scan.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "cardinality_estimate_errors"
+      ],
+      "interactive_hints": {
+        "cardinality_estimate_errors": "Run to see which active queries have the largest gap between estimated and actual row counts \u2014 directly links stale stats to query impact",
+        "stats_histogram_detail": "Run to inspect the actual histogram of the most stale statistics object \u2014 shows the data skew causing the bad estimate",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "cardinality_estimate_errors": {
+      "step_id": "cardinality_estimate_errors",
+      "description": "Active queries with largest estimated vs actual row count divergence",
+      "script_ref": "scripts/sqlserver/cardinality_errors.sql",
+      "mock_data_key": "sqlserver/stale_statistics/cardinality_estimate_errors.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stats_histogram_detail",
+        "stop"
+      ],
+      "interactive_hints": {
+        "stats_histogram_detail": "Run to inspect the histogram of the statistics driving the worst cardinality error \u2014 confirms the exact data distribution problem and the date boundary where the histogram falls off",
+        "stop": "Stop here if the cardinality error data is sufficient for your recommendation",
+        "switch_to_sqlserver-plan-regression": "Switch to the Plan Regression playbook to check whether Query Store has already captured forced regressions for these queries \u2014 you likely need both plan forcing (immediate relief) and statistics rebuild (permanent fix) in parallel"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "stats_histogram_detail": {
+      "step_id": "stats_histogram_detail",
+      "description": "Histogram inspection for the most impactful stale statistics object",
+      "script_ref": "scripts/sqlserver/stats_histogram.sql",
+      "mock_data_key": "sqlserver/stale_statistics/stats_histogram_detail.default.json",
+      "parameters": [
+        "table_name",
+        "stats_name"
+      ],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with update statistics recommendations",
+        "switch_to_sqlserver-plan-regression": "Switch to the Plan Regression playbook to force the last known good plan while the statistics rebuild runs \u2014 the forced plan provides immediate query relief and can be removed once the histogram is current"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 30
+    }
+  }
+}

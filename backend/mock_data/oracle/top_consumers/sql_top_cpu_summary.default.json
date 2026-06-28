@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "oracle",
+  "playbook_id": "oracle-top-consumers",
+  "step_id": "sql_top_cpu_summary",
+  "step_description": "Top SQL by CPU time and buffer gets from v$sql",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["sql_id", "sql_text_short", "cpu_time_s", "elapsed_time_s", "executions", "buffer_gets", "disk_reads", "rows_processed"],
+  "rows": [
+    ["8fk2m9vbqt3dx", "SELECT * FROM orders WHERE customer_id=:1 AND status=:2",      1840.2, 2284.4, 48420, 4820400, 982400, 48420],
+    ["7tqm4xwjnb2dp", "SELECT p.name, SUM(oi.qty) FROM products p JOIN order_items", 1240.4, 1484.2,   420, 2840200, 420400, 420],
+    ["kp9nx2hqw7ztm", "UPDATE customer_stats SET last_order_date=:1 WHERE id=:2",       84.2,   92.4, 48420,   96840,      0, 48420],
+    ["rv2hs6ptmq8wc", "SELECT c.*, a.* FROM customers c JOIN accounts a ON c.id=a",    420.4,  584.2,  1840, 1840200, 284200, 1840],
+    ["dv3rs5mjwc1bn", "INSERT INTO audit_log VALUES (:1,:2,:3,:4,:5,:6)",                8.4,   12.4, 96840,   96840,      0, 96840]
+  ],
+  "row_count": 5,
+  "narrative_hint": "SQL 8fk2m9vbqt3dx is the dominant CPU consumer at 1,840 seconds with 4.8M buffer gets and 982K disk reads across 48,420 executions. The disk reads confirm a full table scan or large range scan. SQL 7tqm4xwjnb2dp is a heavy aggregate JOIN running 420 times consuming 2.8M buffer gets — likely a reporting query without proper indexes. The customer-account JOIN (rv2hs6ptmq8wc) shows 284K disk reads for 1,840 executions suggesting a large Cartesian-style join or missing foreign key index. Claude should prioritize sql_id 8fk2m9vbqt3dx and 7tqm4xwjnb2dp as the top two optimization targets."
+}

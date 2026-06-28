@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.pylance",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "rangav.vscode-thunder-client",
+    "eamodio.gitlens",
+    "ms-vscode.live-server",
+    "bradlc.vscode-tailwindcss"
+  ]
+}

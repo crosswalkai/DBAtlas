@@ -1,0 +1,107 @@
+{
+  "id": "sqlserver-plan-regression",
+  "dbms": "sqlserver",
+  "intent_category": "historical_forensics",
+  "intent_tags": [
+    "plan",
+    "regression",
+    "slow",
+    "suddenly",
+    "used to",
+    "was fast",
+    "query store",
+    "degraded",
+    "changed",
+    "worse",
+    "plan change",
+    "statistics update"
+  ],
+  "title": "SQL Server Query Plan Regression",
+  "description": "Detect and resolve query plan regressions using Query Store \u2014 identifies the last known good plan and recommends forcing it",
+  "entry_step": "qs_regressed_queries",
+  "alternate_playbooks": [
+    "sqlserver-live-slowness-triage",
+    "sqlserver-stale-statistics"
+  ],
+  "max_steps": 5,
+  "version": 2,
+  "author": "A. Pogaku",
+  "steps": {
+    "qs_regressed_queries": {
+      "step_id": "qs_regressed_queries",
+      "description": "Query Store regressed queries \u2014 queries whose performance degraded recently",
+      "script_ref": "scripts/sqlserver/qs_regressed_queries.sql",
+      "mock_data_key": "sqlserver/plan_regression/qs_regressed_queries.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "qs_plan_comparison"
+      ],
+      "interactive_hints": {
+        "qs_plan_comparison": "Run to see the before/after execution plans for the top regressed query \u2014 shows exactly what changed and why performance degraded",
+        "qs_plan_forcing_candidates": "Run to identify which regressed queries are safe candidates for plan forcing",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 15
+    },
+    "qs_plan_comparison": {
+      "step_id": "qs_plan_comparison",
+      "description": "Side-by-side plan comparison \u2014 last known good vs current bad plan",
+      "script_ref": "scripts/sqlserver/qs_plan_comparison.sql",
+      "mock_data_key": "sqlserver/plan_regression/qs_plan_comparison.default.json",
+      "parameters": [
+        "query_id"
+      ],
+      "result_format": "tabular",
+      "typical_next": [
+        "qs_stats_change_timeline",
+        "qs_plan_forcing_candidates"
+      ],
+      "interactive_hints": {
+        "qs_stats_change_timeline": "Run to confirm whether a statistics update triggered the plan change \u2014 pinpoints the root cause",
+        "qs_plan_forcing_candidates": "Run to identify the last good plan_id and generate the sp_query_store_force_plan command",
+        "stop": "Stop here if the plan comparison is sufficient for your diagnosis"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "qs_stats_change_timeline": {
+      "step_id": "qs_stats_change_timeline",
+      "description": "Statistics update history correlated with query performance degradation",
+      "script_ref": "scripts/sqlserver/qs_stats_timeline.sql",
+      "mock_data_key": "sqlserver/plan_regression/qs_stats_change_timeline.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "qs_plan_forcing_candidates"
+      ],
+      "interactive_hints": {
+        "qs_plan_forcing_candidates": "Run to generate the plan forcing command now that the root cause is confirmed \u2014 provides the immediate fix",
+        "stop": "Stop here if timeline confirmation is sufficient",
+        "switch_to_sqlserver-stale-statistics": "Switch to the Stale Statistics playbook to run a full staleness scan and histogram inspection across all affected tables \u2014 reveals the broader impact beyond this one query and generates UPDATE STATISTICS commands for the permanent fix alongside the plan force"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "qs_plan_forcing_candidates": {
+      "step_id": "qs_plan_forcing_candidates",
+      "description": "Plan forcing candidates with sp_query_store_force_plan commands",
+      "script_ref": "scripts/sqlserver/qs_plan_forcing.sql",
+      "mock_data_key": "sqlserver/plan_regression/qs_plan_forcing_candidates.default.json",
+      "parameters": [
+        "query_id"
+      ],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with the plan forcing recommendation",
+        "switch_to_sqlserver-stale-statistics": "Switch to the Stale Statistics playbook to run the full staleness scan \u2014 the plan force is the immediate fix, but the statistics rebuild is the permanent fix and may reveal other affected tables and queries beyond this one"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 10
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-ag-replica-lag",
+  "step_id": "ag_health_overview",
+  "step_description": "AG health overview — sync state, send/redo queues",
+  "simulated_at": "2026-06-22T14:00:00Z",
+  "columns": ["ag_name", "replica_server", "role", "sync_state", "send_queue_kb", "redo_queue_kb", "send_rate_kb_s", "redo_rate_kb_s", "last_hardened_lsn_lag_s", "is_local"],
+  "rows": [
+    ["SalesAG", "SQLPROD-01", "PRIMARY",   "SYNCHRONIZED",   0,       0,       0,      0,      0,   true],
+    ["SalesAG", "SQLPROD-02", "SECONDARY", "SYNCHRONIZING",  0,       0,       42840,  18420,  0,   false],
+    ["SalesAG", "SQLDR-01",   "SECONDARY", "SYNCHRONIZING",  284200,  1842000, 8420,   2840,   218, false]
+  ],
+  "row_count": 3,
+  "narrative_hint": "SQLPROD-02 (local HA replica) is synchronized — no lag. SQLDR-01 (DR replica, likely remote data center) has a critical situation: 284MB send queue AND 1.84GB redo queue. The send queue indicates log is being generated faster than the network can send it. The redo queue shows the secondary's disk is also falling behind applying what it receives. The last_hardened_lsn_lag of 218 seconds means if a failover happened now, up to 218 seconds of committed transactions would be lost. This is a dual bottleneck — network AND disk on the DR replica. Claude should identify this as a high-severity RPO breach risk and investigate redo queue detail since at 1.84GB it is the more critical constraint."
+}

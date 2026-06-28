@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "postgresql",
+  "playbook_id": "postgresql-top-consumers",
+  "step_id": "pg_table_bloat",
+  "step_description": "Table bloat and dead tuple analysis",
+  "simulated_at": "2026-06-22T14:32:04Z",
+  "columns": ["table_name", "live_rows", "dead_rows", "dead_pct", "table_size_mb", "last_autovacuum", "last_autoanalyze"],
+  "rows": [
+    ["order_events",  4820000, 1842000, 38.2, 4840.2, "2026-06-20 02:14:00", "2026-06-20 02:18:00"],
+    ["orders",        1240000,  284000, 22.9, 1280.4, "2026-06-21 03:02:00", "2026-06-21 03:08:00"],
+    ["audit_log",     8420000, 4200000, 49.9, 9840.2, "2026-06-18 04:12:00", "2026-06-18 04:18:00"],
+    ["products",        48200,    1840,  3.8,   84.2, "2026-06-22 01:04:00", "2026-06-22 01:06:00"],
+    ["customers",      284000,    4200,  1.5,  184.4, "2026-06-22 00:48:00", "2026-06-22 00:50:00"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "audit_log has 50% dead tuples — it has not been vacuumed in 4 days and is nearly half bloat. order_events at 38% dead tuples is causing the slow COUNT query — the sequential scan is reading through 1.84M dead rows. orders at 23% dead tuples is contributing to the slow customer lookup. Autovacuum is running but not keeping up. Claude should recommend manual VACUUM ANALYZE on audit_log and order_events immediately, and investigate autovacuum cost settings."
+}

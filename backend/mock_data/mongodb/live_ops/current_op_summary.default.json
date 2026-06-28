@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "mongodb",
+  "playbook_id": "mongodb-live-ops",
+  "step_id": "current_op_summary",
+  "step_description": "Current operations from db.currentOp()",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["opid", "op_type", "ns", "secs_running", "plan_summary", "client", "query_shape"],
+  "rows": [
+    [42841, "query",  "proddb.orders",    48.2, "COLLSCAN",      "10.0.1.42:48201", "{ customer_id: { $eq: '...' } }"],
+    [42856, "query",  "proddb.orders",    47.9, "COLLSCAN",      "10.0.1.43:48301", "{ customer_id: { $eq: '...' } }"],
+    [42871, "query",  "proddb.orders",    12.4, "COLLSCAN",      "10.0.1.44:48401", "{ status: { $in: [...] }, created_at: { $gt: '...' } }"],
+    [42890, "update", "proddb.inventory",  0.4, "IXSCAN _id_",   "10.0.1.45:48501", "{ _id: { $eq: '...' } }"],
+    [42901, "query",  "proddb.analytics",  8.2, "COLLSCAN",      "10.0.1.46:48601", "{ event_type: 'purchase', date: { $gt: '...' } }"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "Three out of five active operations are COLLSCAN — full collection scans — on the orders and analytics collections. The two orders queries running 48 seconds each on customer_id filter are missing an index on customer_id. The analytics collection scan is also missing a compound index on event_type and date. The update operation is fast and properly indexed. Claude should identify the missing indexes on orders.customer_id and analytics.(event_type, date) as the primary issues causing the collection scans."
+}

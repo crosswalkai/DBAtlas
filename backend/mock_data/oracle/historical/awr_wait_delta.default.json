@@ -1,0 +1,19 @@
+{
+  "scenario_id": "scenario-c",
+  "dbms": "oracle",
+  "playbook_id": "oracle-historical-awr",
+  "step_id": "awr_wait_delta",
+  "step_description": "AWR wait event delta between snapshot brackets",
+  "simulated_at": "2026-06-21T18:00:00Z",
+  "columns": ["wait_class", "event_name", "waits_delta", "time_waited_s", "avg_wait_ms", "pct_of_total"],
+  "rows": [
+    ["Commit",       "log file sync",             48420, 14820.4, 306.1, 62.4],
+    ["User I/O",     "db file sequential read",    8204,  2840.1,  34.6, 11.9],
+    ["User I/O",     "db file scattered read",     2180,   892.4,  40.9,  3.8],
+    ["System I/O",   "log file parallel write",   48380,  1240.2,   2.6,  5.2],
+    ["Concurrency",  "buffer busy waits",           420,   184.2,  43.9,  0.8],
+    ["CPU",          "On CPU",                        0,  3842.1,    0.0, 16.2]
+  ],
+  "row_count": 6,
+  "narrative_hint": "Log file sync accounts for 62.4% of wait time — 48,420 waits averaging 306ms each. This is extremely high and indicates a commit storm: many small transactions each waiting for redo to flush to disk. The near-identical count of log file sync (48,420) and log file parallel write (48,380) confirms each commit is waiting for its own individual redo write. This is classic batch-commit-storm behavior — a process committing after every row rather than batching commits. Claude should identify this as the root cause and ask for awr_sql_delta to identify which SQL and application module is responsible."
+}

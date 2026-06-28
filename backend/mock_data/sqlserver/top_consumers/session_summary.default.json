@@ -1,0 +1,19 @@
+{
+  "scenario_id": "scenario-b",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-top-consumers",
+  "step_id": "session_summary",
+  "step_description": "Active session and wait class snapshot",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["session_id", "login_name", "status", "wait_type", "wait_time_ms", "cpu_time", "logical_reads", "program_name"],
+  "rows": [
+    [58,  "ETL_USER",   "running",  "CXPACKET",       4820, 38420, 892100, "ETL_NightlyLoad"],
+    [71,  "APP_USER",   "suspended","LCK_M_S",        2100, 1240,   8820, "WebApp_Pool"],
+    [83,  "APP_USER",   "suspended","LCK_M_S",        2098, 1180,   8640, "WebApp_Pool"],
+    [94,  "APP_USER",   "suspended","LCK_M_S",        2095, 1210,   8590, "WebApp_Pool"],
+    [102, "REPORT_USR", "running",  "ASYNC_NETWORK_IO", 320, 12400, 284000, "SSRS_Reports"],
+    [115, "APP_USER",   "running",  "SOS_SCHEDULER_YIELD", 80, 8920, 42000, "WebApp_Pool"]
+  ],
+  "row_count": 6,
+  "narrative_hint": "ETL_NightlyLoad is running during peak hours with CXPACKET waits indicating parallelism issues. Three APP_USER sessions are blocked waiting for shared locks (LCK_M_S) — almost certainly blocked by the ETL job. CPU and logical reads are heavily concentrated on the ETL session. Claude should identify ETL_USER as the dominant consumer causing secondary blocking and recommend investigating the ETL schedule and MAXDOP settings."
+}

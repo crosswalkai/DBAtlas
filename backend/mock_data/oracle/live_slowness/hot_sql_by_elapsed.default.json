@@ -1,0 +1,18 @@
+{
+  "scenario_id": "scenario-a",
+  "dbms": "oracle",
+  "playbook_id": "oracle-live-slowness-triage",
+  "step_id": "hot_sql_by_elapsed",
+  "step_description": "Top SQL by elapsed time and buffer gets",
+  "simulated_at": "2026-06-22T14:28:05Z",
+  "columns": ["SQL_ID", "ELAPSED_MS", "EXECUTIONS", "AVG_ELAPSED_MS", "BUFFER_GETS", "DISK_READS", "WAIT_CLASS"],
+  "rows": [
+    ["8fk2m9vbqt3dx", 184320, 412, 447.4, 450112, 82304, "User I/O"],
+    ["g7hn2xk4pq8rt",  42108, 1823, 23.1,  12440,   890, "User I/O"],
+    ["dv3rs5mjwc1bn",  31990,  204, 156.8,  8890,   420, "CPU"],
+    ["kp9nx2hqw7ztm",  18450, 5601,  3.3,   4220,    60, "CPU"],
+    ["rw4fs8cblq1vn",  12100,   87, 139.1,  3100,   150, "User I/O"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "SQL_ID 8fk2m9vbqt3dx is massively dominant — 450,112 buffer gets and 82,304 disk reads across 412 executions. Average elapsed of 447ms is extremely high for an OLTP query. The 82K disk reads strongly suggest a full table scan bypassing the buffer cache. Claude should identify this as the root cause and recommend sql_execution_plan to confirm the access path, while suggesting active_locks and redo_log_activity can be safely skipped as there was no evidence of those patterns in step 1."
+}

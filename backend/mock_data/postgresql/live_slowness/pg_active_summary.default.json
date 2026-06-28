@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "postgresql",
+  "playbook_id": "postgresql-live-slowness-triage",
+  "step_id": "pg_active_summary",
+  "step_description": "Active queries from pg_stat_activity",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["pid", "usename", "state", "wait_event_type", "wait_event", "duration_s", "query_short"],
+  "rows": [
+    [1842, "app_user",    "active",              "Lock",   "relation",    42.1, "SELECT * FROM orders WHERE customer_id=$1"],
+    [2201, "app_user",    "active",              "Lock",   "relation",    41.8, "SELECT * FROM orders WHERE customer_id=$1"],
+    [3104, "app_user",    "idle in transaction", "Client", "ClientRead", 180.4, "BEGIN; UPDATE orders SET status=$1 WHERE ..."],
+    [4820, "report_user", "active",              "IO",     "DataFileRead", 12.4, "SELECT o.*, c.* FROM orders o JOIN customers c"],
+    [5001, "app_user",    "active",              null,     null,           0.2,  "INSERT INTO order_events VALUES ($1,$2,$3)"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "PID 3104 is idle in transaction for 180 seconds — this is the head blocker. PIDs 1842 and 2201 are both waiting on a relation lock for over 40 seconds, blocked by PID 3104. The idle in transaction session is holding a row lock while the client application is unresponsive or thinking. Claude should identify PID 3104 as the root cause, recommend setting idle_in_transaction_session_timeout to prevent recurrence, and suggest terminating PID 3104 immediately to unblock the waiting sessions."
+}

@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-ag-replica-lag",
+  "step_id": "ag_network_throughput",
+  "step_description": "Log send rate vs log generation rate on primary",
+  "simulated_at": "2026-06-22T14:00:06Z",
+  "columns": ["replica_server", "log_send_rate_kb_s", "log_generation_rate_kb_s", "network_bandwidth_used_pct", "avg_send_latency_ms", "resend_count_last_hour", "compression_ratio", "send_queue_trend"],
+  "rows": [
+    ["SQLPROD-02 (HA)", 42840, 42840, 18.4, 0.8, 0, "3.2x", "Stable — fully caught up"],
+    ["SQLDR-01 (DR)",   8420, 42840, 84.2, 124.4, 842, "3.2x", "Growing — send queue +284KB/s net deficit"]
+  ],
+  "row_count": 2,
+  "narrative_hint": "Network analysis confirms SQLDR-01 is network-constrained as well as disk-constrained. The link to SQLDR-01 is at 84% bandwidth utilization with 124ms average send latency. At 8,420 KB/s send rate against 42,840 KB/s log generation, the network can only carry 19.6% of the log stream to the DR replica. The HA replica (SQLPROD-02) is keeping up fine on the local network at 0.8ms latency. The 842 resend events in the last hour indicate packet loss or TCP retransmissions on the WAN link. The combination of network saturation and disk bottleneck on SQLDR-01 creates a dual constraint. Claude should note both bottlenecks and recommend the RPO calculation step to quantify business impact."
+}

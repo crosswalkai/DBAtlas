@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-wait-stats-deviation",
+  "step_id": "query_store_weekend_changes",
+  "step_description": "Query Store plan changes during weekend maintenance window",
+  "simulated_at": "2026-06-22T09:00:08Z",
+  "columns": ["query_id", "query_text_short", "old_plan_id", "new_plan_id", "plan_change_time", "old_avg_duration_ms", "new_avg_duration_ms", "old_memory_grant_mb", "new_memory_grant_mb", "plan_change_reason"],
+  "rows": [
+    [4820, "SELECT r.region, p.category, SUM(oi.qty*p.price) FROM OrderItems oi JOIN Products p ... GROUP BY r.region, p.category", 12040, 14820, "2026-06-21 03:48:22", 284.2, 18420.4, 28, 28420, "Index rebuild on OrderItems updated statistics — row count estimate changed from 28M to 840M, causing 1000x memory grant inflation"],
+    [2841, "SELECT o.order_id, o.total FROM Orders o WHERE o.status = @s AND o.created_date > @d", 8420, 8891, "2026-06-21 02:14:22", 48.2, 4820.4, 12, 12, "Statistics update on Orders — cardinality estimate changed (see plan regression scenario)"]
+  ],
+  "row_count": 2,
+  "narrative_hint": "The revenue report query (query_id 4820) changed its plan at 03:48 on Sunday during the index rebuild maintenance window. The OrderItems index rebuild updated statistics using a FULLSCAN which revealed the table had grown from 28M to 840M rows since statistics were last collected. The optimizer responded by inflating the memory grant from 28MB to 28,420MB — a 1000x increase — to accommodate the now-correctly-estimated row count. The plan itself is not wrong, but the memory grant is unsustainably large for concurrent execution. Claude should recommend: (1) add MAX_GRANT_PERCENT hint or Resource Governor classification to cap memory grants for the report query, (2) reduce parallelism with MAXDOP hint or workload group, (3) consider scheduling the report for off-peak hours."
+}

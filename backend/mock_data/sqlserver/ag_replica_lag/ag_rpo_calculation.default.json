@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-ag-replica-lag",
+  "step_id": "ag_rpo_calculation",
+  "step_description": "RPO exposure — data at risk if failover occurred now",
+  "simulated_at": "2026-06-22T14:00:08Z",
+  "columns": ["database_name", "rpo_exposure_seconds", "rpo_exposure_readable", "data_at_risk_mb", "transactions_at_risk_estimate", "sla_rpo_seconds", "sla_breach", "trend_last_30min"],
+  "rows": [
+    ["SalesDB",     218, "3 min 38 sec", 1420, 48420, 60,  "YES — 3.6x over SLA", "Growing +84 KB/s net"],
+    ["InventoryDB",  42, "42 seconds",    284,  8420, 60,  "No — within SLA",     "Growing +12 KB/s net"],
+    ["CustomerDB",   28, "28 seconds",    138,  2840, 60,  "No — within SLA",     "Growing +5 KB/s net"]
+  ],
+  "row_count": 3,
+  "narrative_hint": "SalesDB is in active SLA breach — 218 seconds of RPO exposure against a 60-second SLA, and growing. If a failover to SQLDR-01 occurred right now, approximately 48,420 transactions (3 minutes 38 seconds worth) of committed data would be lost. The trend is worsening — the gap is growing at 84 KB/s net. InventoryDB and CustomerDB are within SLA but trending toward breach. This is a high-severity incident requiring immediate escalation. Claude should frame this in business terms: SalesDB RPO SLA is breached by 3.6x, 48K transactions are at risk, and the situation is worsening. Immediate actions: notify on-call team, investigate SQLDR-01 storage, consider pausing non-critical batch operations on primary."
+}

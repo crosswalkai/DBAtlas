@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "postgresql",
+  "playbook_id": "postgresql-top-consumers",
+  "step_id": "pg_stat_summary",
+  "step_description": "Top queries from pg_stat_statements by total time",
+  "simulated_at": "2026-06-22T14:32:00Z",
+  "columns": ["query_short", "calls", "total_time_s", "mean_time_ms", "stddev_time_ms", "rows_per_call", "cache_hit_pct"],
+  "rows": [
+    ["SELECT * FROM orders WHERE customer_id=$1",         48420, 2841.4,  58.7, 42.1,  1.0, 65.2],
+    ["SELECT o.*, c.* FROM orders o JOIN customers c",     1820, 1284.2, 705.6, 284.2, 42.0, 34.2],
+    ["SELECT p.*, i.* FROM products p JOIN inventory i",   9840,  984.2, 100.0,  48.4, 18.4, 72.4],
+    ["UPDATE orders SET status=$1 WHERE order_id=$2",     48198,  420.4,   8.7,   2.1,  1.0, 98.4],
+    ["SELECT COUNT(*) FROM order_events WHERE date>$1",     240,  384.2, 1600.8, 420.4, 1.0,  8.4]
+  ],
+  "row_count": 5,
+  "narrative_hint": "The COUNT query averages 1,600ms with only 8.4% cache hit — this is a large sequential scan on order_events. The orders SELECT has 65% cache hit rate but still reads 35% from disk — the table may need a covering index. The JOIN query at 34% cache hit rate is performing significant physical I/O for 42 rows per call suggesting it should be broken into smaller queries or indexed better. Claude should prioritize the COUNT query and the JOIN query as the two most impactful targets."
+}

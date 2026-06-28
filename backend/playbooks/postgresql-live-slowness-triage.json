@@ -1,0 +1,60 @@
+{
+  "id": "postgresql-live-slowness-triage",
+  "dbms": "postgresql",
+  "intent_category": "live_triage",
+  "intent_tags": ["slow", "slowness", "sluggish", "performance", "now", "current", "triage", "troubleshoot", "locks", "waiting", "idle in transaction"],
+  "title": "PostgreSQL Live Slowness Triage",
+  "description": "Identify active queries, locks, and wait events causing current PostgreSQL slowness",
+  "entry_step": "pg_active_summary",
+  "alternate_playbooks": ["postgresql-top-consumers"],
+  "max_steps": 5,
+  "version": 1,
+  "author": "A. Sharma",
+  "steps": {
+    "pg_active_summary": {
+      "step_id": "pg_active_summary",
+      "description": "Active queries and wait events from pg_stat_activity",
+      "script_ref": "scripts/postgresql/pg_active_summary.sql",
+      "mock_data_key": "postgresql/live_slowness/pg_active_summary.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["pg_lock_contention", "pg_slow_queries"],
+      "interactive_hints": {
+        "pg_lock_contention": "Run when queries show 'Lock' wait events or 'idle in transaction' states — maps the lock chain",
+        "pg_slow_queries": "Run to identify the specific queries consuming the most time across the cluster",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 25
+    },
+    "pg_lock_contention": {
+      "step_id": "pg_lock_contention",
+      "description": "Lock contention and blocking query chains",
+      "script_ref": "scripts/postgresql/pg_lock_contention.sql",
+      "mock_data_key": "postgresql/live_slowness/pg_lock_contention.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "pg_slow_queries": "Run alongside lock analysis if you suspect the blocking query is also a slow query",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "pg_slow_queries": {
+      "step_id": "pg_slow_queries",
+      "description": "Top slow queries from pg_stat_statements",
+      "script_ref": "scripts/postgresql/pg_slow_queries.sql",
+      "mock_data_key": "postgresql/live_slowness/pg_slow_queries.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

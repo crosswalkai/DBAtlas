@@ -1,0 +1,72 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-sleeping-sessions",
+  "step_id": "detect_sleeping_sessions",
+  "step_description": "Sleeping and inactive sessions ordered by inactive duration",
+  "simulated_at": "2026-06-27T20:00:00Z",
+  "columns": [
+    "spid",
+    "login_name",
+    "host_name",
+    "program_name",
+    "status",
+    "open_transaction_count",
+    "login_time",
+    "last_request_end_time",
+    "inactive_seconds",
+    "tempdb_allocations_kb"
+  ],
+  "rows": [
+    [
+      73,
+      "app_user",
+      "AppServer-01",
+      ".Net SqlClient Data Provider",
+      "sleeping",
+      1,
+      "2026-06-27 12:00:00",
+      "2026-06-27 16:30:00",
+      14400,
+      204800
+    ],
+    [
+      85,
+      "app_user",
+      "AppServer-01",
+      ".Net SqlClient Data Provider",
+      "sleeping",
+      0,
+      "2026-06-27 12:05:00",
+      "2026-06-27 17:15:00",
+      11700,
+      0
+    ],
+    [
+      92,
+      "app_user",
+      "AppServer-02",
+      ".Net SqlClient Data Provider",
+      "sleeping",
+      0,
+      "2026-06-27 13:00:00",
+      "2026-06-27 18:00:00",
+      9000,
+      40960
+    ],
+    [
+      104,
+      "db_admin",
+      "DBA-Workstation",
+      "SSMS",
+      "sleeping",
+      0,
+      "2026-06-27 19:30:00",
+      "2026-06-27 20:00:00",
+      1200,
+      0
+    ]
+  ],
+  "row_count": 4,
+  "narrative_hint": "There are several sleeping connections from AppServer-01. Most notably, SPID 73 has been sleeping for 14,400 seconds (4 hours) and has 1 open transaction, while holding 200MB of tempdb space. This strongly suggests a leaked connection from the application layer that started a transaction but failed to commit/roll back or close the connection. Claude should identify SPID 73 as the culprit and check for blocking next to see if it is obstructing active workload."
+}

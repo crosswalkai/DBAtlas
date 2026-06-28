@@ -1,0 +1,12 @@
+{
+  "scenario_id": "scenario-a",
+  "dbms": "oracle",
+  "playbook_id": "oracle-live-slowness-triage",
+  "step_id": "active_locks",
+  "step_description": "Blocking sessions and lock wait chains",
+  "simulated_at": "2026-06-22T14:28:03Z",
+  "columns": ["BLOCKING_SID", "BLOCKED_SID", "LOCK_TYPE", "WAIT_SECONDS", "BLOCKING_SQL_ID"],
+  "rows": [],
+  "row_count": 0,
+  "narrative_hint": "No lock contention found. Zero rows confirms no blocking or lock chains. Claude should note this rules out lock-related causes and the performance issue is purely I/O driven."
+}

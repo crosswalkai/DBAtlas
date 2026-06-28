@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-live-slowness-triage",
+  "step_id": "top_wait_stats",
+  "step_description": "Top wait statistics since last SQL Server restart",
+  "simulated_at": "2026-06-22T14:32:05Z",
+  "columns": ["wait_type", "waiting_tasks_count", "wait_time_s", "max_wait_time_ms", "signal_wait_time_s", "pct_of_total"],
+  "rows": [
+    ["LCK_M_S",           48420, 98420.4,  4820, 0.4,   42.1],
+    ["CXPACKET",          28840, 42180.2,  8420, 12.4,  18.0],
+    ["PAGEIOLATCH_SH",    18420, 28420.1,  1840, 0.2,   12.2],
+    ["ASYNC_NETWORK_IO",  84200,  8420.4,   420, 0.0,    3.6],
+    ["SOS_SCHEDULER_YIELD",42000, 4200.2,   840, 4200.2, 1.8]
+  ],
+  "row_count": 5,
+  "narrative_hint": "LCK_M_S (shared locks) at 42% of total waits confirms lock contention is the dominant historical pattern on this server, not just a current event. CXPACKET at 18% confirms parallelism is consistently contributing to waits. The high LCK_M_S count (48,420 tasks) suggests this ETL vs OLTP conflict is a recurring daily pattern, not a one-time event. Claude should recommend both immediate (reschedule ETL) and permanent (RCSI isolation level) fixes."
+}

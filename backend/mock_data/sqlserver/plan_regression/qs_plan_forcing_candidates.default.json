@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-plan-regression",
+  "step_id": "qs_plan_forcing_candidates",
+  "step_description": "Plan forcing candidates with remediation commands",
+  "simulated_at": "2026-06-22T09:00:12Z",
+  "columns": ["query_id", "good_plan_id", "bad_plan_id", "force_command", "stats_fix_command", "estimated_recovery_ms", "risk_level"],
+  "rows": [
+    [2841, 8420, 8891, "EXEC sp_query_store_force_plan @query_id = 2841, @plan_id = 8420;", "UPDATE STATISTICS dbo.Orders IX_Orders_Status_Date WITH FULLSCAN;", 48.2, "Low — plan 8420 was stable for 8 months"],
+    [1204, 7201, 7890, "EXEC sp_query_store_force_plan @query_id = 1204, @plan_id = 7201;", "UPDATE STATISTICS dbo.Products IX_Products_Category WITH FULLSCAN;", 284.4, "Low — plan 7201 was stable for 6 months"],
+    [3102, 5840, 6120, "EXEC sp_query_store_force_plan @query_id = 3102, @plan_id = 5840;", "UPDATE STATISTICS dbo.CustomerStats WITH FULLSCAN;", 2.1, "Medium — validate in non-prod first"]
+  ],
+  "row_count": 3,
+  "narrative_hint": "All three regressed queries have identified good plans available for forcing. Query 2841 is the critical fix — forcing plan 8420 should immediately restore performance from 4,820ms back to 48ms average. The FULLSCAN statistics updates should be run during low-traffic hours after the plan forces are in place to rebuild accurate histograms. Claude should present the force commands as the immediate action and the statistics rebuild as the permanent fix, and note that the auto-update statistics sampling rate should be reviewed via sp_autostats or trace flag 4139."
+}

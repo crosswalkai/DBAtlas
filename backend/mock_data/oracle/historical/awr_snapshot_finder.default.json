@@ -1,0 +1,16 @@
+{
+  "scenario_id": "scenario-c",
+  "dbms": "oracle",
+  "playbook_id": "oracle-historical-awr",
+  "step_id": "awr_snapshot_finder",
+  "step_description": "Locate AWR snapshot bracket for requested time window",
+  "simulated_at": "2026-06-21T18:00:00Z",
+  "columns": ["snap_id", "begin_interval_time", "end_interval_time", "snap_level", "instance_number"],
+  "rows": [
+    [8820, "21-JUN-26 17.30.00", "21-JUN-26 18.00.00", 1, 1],
+    [8821, "21-JUN-26 18.00.00", "21-JUN-26 18.30.00", 1, 1],
+    [8822, "21-JUN-26 18.30.00", "21-JUN-26 19.00.00", 1, 1]
+  ],
+  "row_count": 3,
+  "narrative_hint": "Three AWR snapshots bracket the 6PM incident window. Snap IDs 8820-8821 cover 17:30-18:30 which is the most relevant range. Claude should confirm the time window is correctly identified and proceed to awr_wait_delta using snap_id 8820 as begin and 8821 as end to capture the peak of the incident. The 30-minute snapshot interval means granularity is coarse but sufficient to identify dominant wait events."
+}

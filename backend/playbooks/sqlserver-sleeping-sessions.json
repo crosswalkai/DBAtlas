@@ -1,0 +1,84 @@
+{
+  "id": "sqlserver-sleeping-sessions",
+  "dbms": "sqlserver",
+  "intent_category": "live_triage",
+  "intent_tags": [
+    "sleeping",
+    "inactive",
+    "session",
+    "sleeping sessions",
+    "connection leak",
+    "idle",
+    "tempdb usage",
+    "blocking",
+    "orphan",
+    "idle connection",
+    "leak"
+  ],
+  "title": "SQL Server Sleeping Sessions Triage",
+  "description": "Diagnose inactive/sleeping database sessions that may be holding locks, consuming tempdb resources, or leaking connections",
+  "entry_step": "detect_sleeping_sessions",
+  "alternate_playbooks": [
+    "sqlserver-live-slowness-triage",
+    "sqlserver-top-consumers"
+  ],
+  "max_steps": 5,
+  "version": 1,
+  "author": "Antigravity",
+  "steps": {
+    "detect_sleeping_sessions": {
+      "step_id": "detect_sleeping_sessions",
+      "description": "Detect sleeping and inactive sessions ordered by inactive duration",
+      "script_ref": "scripts/sqlserver/detect_sleeping_sessions.sql",
+      "mock_data_key": "sqlserver/sleeping_sessions/detect_sleeping_sessions.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "check_sleeping_session_blocking",
+        "sleeping_session_tempdb_usage"
+      ],
+      "interactive_hints": {
+        "check_sleeping_session_blocking": "Run to check if any of these sleeping sessions are holding locks and blocking active queries",
+        "sleeping_session_tempdb_usage": "Run to check if these sessions are also leaking/consuming space in tempdb",
+        "stop": "Stop here and generate the final analysis based on the sleeping session count"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "check_sleeping_session_blocking": {
+      "step_id": "check_sleeping_session_blocking",
+      "description": "Check if sleeping sessions are causing locks or blocking other queries",
+      "script_ref": "scripts/sqlserver/check_sleeping_session_blocking.sql",
+      "mock_data_key": "sqlserver/sleeping_sessions/check_sleeping_session_blocking.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "sleeping_session_tempdb_usage",
+        "stop"
+      ],
+      "interactive_hints": {
+        "sleeping_session_tempdb_usage": "Run to check if these sessions are also leaking/consuming space in tempdb",
+        "stop": "Stop here and generate the final report highlighting the blocking SPID",
+        "switch_to_sqlserver-live-slowness-triage": "Switch to Live Slowness Triage to investigate broader server performance issues"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "sleeping_session_tempdb_usage": {
+      "step_id": "sleeping_session_tempdb_usage",
+      "description": "Check tempdb session space allocations for sleeping/inactive sessions",
+      "script_ref": "scripts/sqlserver/sleeping_session_tempdb_usage.sql",
+      "mock_data_key": "sqlserver/sleeping_sessions/sleeping_session_tempdb_usage.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final report including tempdb usage details"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

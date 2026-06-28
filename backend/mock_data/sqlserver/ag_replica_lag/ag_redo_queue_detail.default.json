@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-ag-replica-lag",
+  "step_id": "ag_redo_queue_detail",
+  "step_description": "Secondary redo queue analysis on SQLDR-01",
+  "simulated_at": "2026-06-22T14:00:04Z",
+  "columns": ["database_name", "redo_queue_kb", "redo_rate_kb_s", "log_generation_rate_kb_s", "redo_deficit_kb_s", "estimated_catchup_minutes", "last_redo_time", "secondary_disk_latency_ms"],
+  "rows": [
+    ["SalesDB",     1420000, 2840, 8420, 5580, 84.7, "2026-06-22 13:57:42", 42.4],
+    ["InventoryDB",  284000, 420,  1840, 1420, 11.2, "2026-06-22 13:58:12", 38.2],
+    ["CustomerDB",   138200, 284,   840,  556,  8.3, "2026-06-22 13:58:44", 41.8]
+  ],
+  "row_count": 3,
+  "narrative_hint": "SalesDB is the critical database. It is generating log at 8,420 KB/s but the DR secondary can only redo at 2,840 KB/s — a deficit of 5,580 KB/s. At this rate the redo queue will NOT catch up; it will continue growing. The secondary disk latency of 42ms is the bottleneck — at that latency the disk I/O throughput caps out at approximately 2,840 KB/s for sequential log writes. The secondary's storage tier is insufficient for the current log generation rate. Estimated catchup time of 84.7 minutes assumes the primary stops generating log — which it won't. Without intervention the redo queue will grow indefinitely. Immediate actions: (1) investigate DR storage I/O, (2) consider throttling bulk operations on primary, (3) evaluate storage upgrade on SQLDR-01."
+}

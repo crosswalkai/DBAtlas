@@ -1,0 +1,52 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-sleeping-sessions",
+  "step_id": "sleeping_session_tempdb_usage",
+  "step_description": "Check tempdb session space allocations for sleeping/inactive sessions",
+  "simulated_at": "2026-06-27T20:10:00Z",
+  "columns": [
+    "spid",
+    "login_name",
+    "host_name",
+    "user_objects_alloc_kb",
+    "user_objects_dealloc_kb",
+    "internal_objects_alloc_kb",
+    "internal_objects_dealloc_kb",
+    "total_held_kb"
+  ],
+  "rows": [
+    [
+      73,
+      "app_user",
+      "AppServer-01",
+      204800,
+      0,
+      0,
+      0,
+      204800
+    ],
+    [
+      92,
+      "app_user",
+      "AppServer-02",
+      40960,
+      0,
+      0,
+      0,
+      40960
+    ],
+    [
+      85,
+      "app_user",
+      "AppServer-01",
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "row_count": 3,
+  "narrative_hint": "This step confirms that SPID 73 is not only causing blocking but is also holding 204,800 KB (200MB) of active space inside tempdb user objects (e.g. un-dropped local temporary tables or table variables). SPID 92 is also holding 40MB. Since these sessions are sleeping, the tempdb space cannot be reclaimed until the sessions are terminated. Terminating SPID 73 will instantly release both the lock block on Orders and reclaim the 200MB of tempdb space."
+}

@@ -1,0 +1,83 @@
+{
+  "id": "sqlserver-live-slowness-triage",
+  "dbms": "sqlserver",
+  "intent_category": "live_triage",
+  "intent_tags": [
+    "slow",
+    "slowness",
+    "sluggish",
+    "performance",
+    "now",
+    "current",
+    "triage",
+    "troubleshoot",
+    "blocking",
+    "waiting",
+    "hanging"
+  ],
+  "title": "SQL Server Live Slowness Triage",
+  "description": "Identify blocking, waits, and SQL causing current SQL Server performance issues",
+  "entry_step": "active_requests",
+  "alternate_playbooks": [
+    "sqlserver-top-consumers"
+  ],
+  "max_steps": 5,
+  "version": 1,
+  "author": "A. Pogaku",
+  "steps": {
+    "active_requests": {
+      "step_id": "active_requests",
+      "description": "Active requests, wait types, and blocking chains",
+      "script_ref": "scripts/sqlserver/active_requests.sql",
+      "mock_data_key": "sqlserver/live_slowness/active_requests.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "blocking_chains",
+        "top_wait_stats"
+      ],
+      "interactive_hints": {
+        "blocking_chains": "Run when LCK_ waits are visible \u2014 maps the full blocking chain to identify the head blocker",
+        "top_wait_stats": "Run to see cumulative wait statistics since last restart \u2014 helps distinguish transient from persistent issues",
+        "query_store_top_consumers": "Run to identify the specific queries driving the current load",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 25
+    },
+    "blocking_chains": {
+      "step_id": "blocking_chains",
+      "description": "Blocking session chains and lock wait details",
+      "script_ref": "scripts/sqlserver/blocking_chains.sql",
+      "mock_data_key": "sqlserver/live_slowness/blocking_chains.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "top_wait_stats",
+        "stop"
+      ],
+      "interactive_hints": {
+        "top_wait_stats": "Run to see overall wait statistics context alongside the blocking analysis",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "top_wait_stats": {
+      "step_id": "top_wait_stats",
+      "description": "Top wait statistics since last SQL Server restart",
+      "script_ref": "scripts/sqlserver/top_wait_stats.sql",
+      "mock_data_key": "sqlserver/live_slowness/top_wait_stats.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64">
+  <defs>
+    <marker id="dbArrow" viewBox="0 0 12 10" refX="10.8" refY="5" markerWidth="4.8" markerHeight="4.8" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,2 L12,5 L0,8 z" fill="#22C55E"></path></marker>
+    <linearGradient id="dbNode" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F4B62B"></stop><stop offset="0.5" stop-color="#7C9E6F"></stop><stop offset="1" stop-color="#2563EB"></stop></linearGradient>
+  </defs>
+  <rect x="0" y="0" width="100" height="100" rx="18" fill="#C6E4E7"></rect>
+  <g transform="translate(16,16) scale(0.68)">
+<g fill="none" stroke="#0C7B83" stroke-width="2.8" stroke-linecap="round">
+    <circle cx="50" cy="50" r="37"></circle>
+    <ellipse cx="50" cy="50" rx="13" ry="37"></ellipse>
+    <line x1="13" y1="50" x2="87" y2="50"></line>
+    <line x1="17.1" y1="33" x2="82.9" y2="33"></line>
+    <line x1="17.1" y1="67" x2="82.9" y2="67"></line>
+  </g>
+  <circle cx="50" cy="50" r="8.2" fill="#C6E4E7"></circle>
+  <g fill="none" stroke="#0C7B83" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="50" cy="44.75" rx="6" ry="1.8"></ellipse>
+    <path d="M44,44.75 V55.25"></path>
+    <path d="M56,44.75 V55.25"></path>
+    <path d="M44,55.25 A6,1.8 0 0 0 56,55.25"></path>
+  </g>
+  </g>
+</svg>

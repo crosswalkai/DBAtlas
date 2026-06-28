@@ -1,0 +1,26 @@
+# Dependency directories
+node_modules/
+venv/
+backend/venv/
+
+# Environment files
+.env
+.env.local
+backend/.env
+
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Logs
+*.log
+logs/
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/dbatlas.code-workspace

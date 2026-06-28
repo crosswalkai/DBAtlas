@@ -1,0 +1,83 @@
+{
+  "id": "sqlserver-deadlock-analysis",
+  "dbms": "sqlserver",
+  "intent_category": "historical_forensics",
+  "intent_tags": [
+    "deadlock",
+    "deadlocks",
+    "1205",
+    "killed",
+    "victim",
+    "transaction",
+    "lock cycle",
+    "xe",
+    "extended events",
+    "conflict",
+    "rollback"
+  ],
+  "title": "SQL Server Deadlock Analysis",
+  "description": "Investigate deadlock cycles using Extended Events \u2014 identifies victim/survivor chains, conflicting access patterns, and structural fixes",
+  "entry_step": "xe_deadlock_summary",
+  "alternate_playbooks": [
+    "sqlserver-live-slowness-triage"
+  ],
+  "max_steps": 4,
+  "version": 1,
+  "author": "J. Smith",
+  "steps": {
+    "xe_deadlock_summary": {
+      "step_id": "xe_deadlock_summary",
+      "description": "Deadlock event summary from Extended Events ring buffer",
+      "script_ref": "scripts/sqlserver/xe_deadlock_summary.sql",
+      "mock_data_key": "sqlserver/deadlock/xe_deadlock_summary.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "xe_deadlock_detail"
+      ],
+      "interactive_hints": {
+        "xe_deadlock_detail": "Run to see the full deadlock chain \u2014 victim process, survivor process, the exact resources they were competing for, and the SQL text of each",
+        "deadlock_index_analysis": "Run to check whether missing indexes on the deadlocked tables are forcing lock escalation",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "xe_deadlock_detail": {
+      "step_id": "xe_deadlock_detail",
+      "description": "Full deadlock chain \u2014 victim/survivor, resources, SQL text",
+      "script_ref": "scripts/sqlserver/xe_deadlock_detail.sql",
+      "mock_data_key": "sqlserver/deadlock/xe_deadlock_detail.default.json",
+      "parameters": [
+        "deadlock_id"
+      ],
+      "result_format": "tabular",
+      "typical_next": [
+        "deadlock_index_analysis",
+        "stop"
+      ],
+      "interactive_hints": {
+        "deadlock_index_analysis": "Run to check if missing or incomplete indexes are forcing the deadlock \u2014 often a covering index eliminates the cycle entirely",
+        "stop": "Stop here if the chain analysis is sufficient for your diagnosis"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "deadlock_index_analysis": {
+      "step_id": "deadlock_index_analysis",
+      "description": "Index coverage analysis on deadlocked tables",
+      "script_ref": "scripts/sqlserver/deadlock_index_analysis.sql",
+      "mock_data_key": "sqlserver/deadlock/deadlock_index_analysis.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with remediation recommendations"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

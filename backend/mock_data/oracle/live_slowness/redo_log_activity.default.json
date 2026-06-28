@@ -1,0 +1,19 @@
+{
+  "scenario_id": "default",
+  "dbms": "oracle",
+  "playbook_id": "oracle-live-slowness-triage",
+  "step_id": "redo_log_activity",
+  "step_description": "Redo generation rate and log file sync waits",
+  "simulated_at": "2026-06-22T14:28:00Z",
+  "columns": ["metric_name", "value", "unit"],
+  "rows": [
+    ["redo log space requests",    42,      "count since startup"],
+    ["redo log space wait time",   840,     "centiseconds"],
+    ["redo size per second",       184200,  "bytes/sec"],
+    ["log file sync avg wait ms",  2.4,     "ms"],
+    ["log file sync waits",        48420,   "count since startup"],
+    ["log switches last hour",     4,       "count"]
+  ],
+  "row_count": 6,
+  "narrative_hint": "Redo activity is within normal bounds — log file sync average wait is only 2.4ms and redo generation at 180KB/sec is moderate. This rules out redo-related causes for the current slowness. Claude should note this is normal and the root cause is elsewhere (consistent with the I/O wait pattern seen in the entry step)."
+}

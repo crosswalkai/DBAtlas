@@ -1,0 +1,20 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-wait-stats-deviation",
+  "step_id": "wait_stats_delta",
+  "step_description": "Wait stats delta — Monday 09:00 this week vs last week",
+  "simulated_at": "2026-06-22T09:00:00Z",
+  "columns": ["wait_type", "wait_time_s_this_week", "wait_time_s_last_week", "change_factor", "tasks_this_week", "tasks_last_week", "anomaly_flag"],
+  "rows": [
+    ["RESOURCE_SEMAPHORE",    18420.4,   1284.2,  14.3, 8420,  840,  "CRITICAL — 14x baseline"],
+    ["RESOURCE_SEMAPHORE_QUERY_COMPILE", 2840.2, 284.4, 10.0, 1840, 184, "HIGH — 10x baseline"],
+    ["CXPACKET",              4820.4,   4284.2,   1.1, 2840, 2420,  "Normal — within 10% of baseline"],
+    ["LCK_M_S",               1284.2,   1420.4,   0.9, 8420, 9420,  "Normal — slightly below baseline"],
+    ["PAGEIOLATCH_SH",         420.4,    384.2,   1.1, 1840, 1420,  "Normal — within 10% of baseline"],
+    ["ASYNC_NETWORK_IO",       284.2,    264.4,   1.1, 42000,40000, "Normal"],
+    ["SOS_SCHEDULER_YIELD",    120.4,    110.2,   1.1, 8420,  8200, "Normal"]
+  ],
+  "row_count": 7,
+  "narrative_hint": "The deviation is concentrated almost entirely on RESOURCE_SEMAPHORE waits — 14x the baseline for the same Monday morning period last week. All other wait types are within 10% of baseline. RESOURCE_SEMAPHORE means queries are waiting in queue to be granted memory for sort/hash/parallel operations. This is not a general server load issue — it is specifically a memory grant pressure problem. Something changed that is causing one or more queries to request much larger memory grants than usual. The timing correlation with weekend maintenance strongly suggests an index rebuild changed a query plan. Claude should proceed to memory grant analysis to identify which queries are holding large grants."
+}

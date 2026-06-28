@@ -1,0 +1,23 @@
+{
+  "scenario_id": "default",
+  "dbms": "mongodb",
+  "playbook_id": "mongodb-live-ops",
+  "step_id": "server_status",
+  "step_description": "Server-wide counters — connections, memory, opcounters",
+  "simulated_at": "2026-06-22T14:32:02Z",
+  "columns": ["metric", "value", "unit"],
+  "rows": [
+    ["connections.current",          284,    "connections"],
+    ["connections.available",         216,    "connections"],
+    ["mem.resident",                 7842,    "MB"],
+    ["mem.virtual",                 24820,    "MB"],
+    ["opcounters.query_per_sec",      842,    "ops/sec"],
+    ["opcounters.insert_per_sec",     184,    "ops/sec"],
+    ["opcounters.update_per_sec",     420,    "ops/sec"],
+    ["wiredTiger.cache.bytes_in_cache", 6842, "MB"],
+    ["wiredTiger.cache.max_bytes",    8192,   "MB"],
+    ["globalLock.activeClients.readers", 18, "clients"]
+  ],
+  "row_count": 10,
+  "narrative_hint": "WiredTiger cache is at 83% utilization (6.8GB of 8GB) — high but not yet causing eviction pressure. Connection count is 284 of 500 available — healthy. Query rate is 842/sec which is high for a server with collection scans running. Active reader clients at 18 confirms the concurrent COLLSCAN operations seen in currentOp. The memory pressure from the cache combined with full collection scans is the likely cause of the slowness. Claude should note the cache pressure as a contributing factor alongside the missing indexes."
+}

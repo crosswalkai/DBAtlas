@@ -1,0 +1,17 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-deadlock-analysis",
+  "step_id": "deadlock_index_analysis",
+  "step_description": "Index coverage analysis on deadlocked tables",
+  "simulated_at": "2026-06-22T14:00:05Z",
+  "columns": ["table_name", "index_name", "index_type", "columns_included", "covers_victim_query", "covers_survivor_query", "recommendation"],
+  "rows": [
+    ["Orders", "PK_Orders",           "Clustered",    "order_id",                                    "No",  "Yes — for UPDATE by order_id", "Existing — no change needed"],
+    ["Orders", "IX_Orders_CustomerID","Non-clustered", "customer_id, created_date",                  "Partial — missing status, total", "No", "Add INCLUDE (status, total, order_id) to eliminate key lookup and reduce lock scope"],
+    ["Orders", "IX_Orders_Status_Date","Non-clustered","status, created_date",                       "No",  "No",                          "Not relevant to this deadlock"],
+    ["Orders", "Missing covering index","Recommended",  "customer_id, created_date INCLUDE(order_id, status, total, updated_at)", "Yes", "Yes — eliminates key lookup", "CREATE INDEX IX_Orders_Cust_Date_Covering ON Orders(customer_id, created_date) INCLUDE(order_id, status, total, updated_at)"]
+  ],
+  "row_count": 4,
+  "narrative_hint": "The IX_Orders_CustomerID index is missing the columns needed for the SELECT query to be satisfied without a key lookup. The key lookup forces a second lock acquisition on the clustered index row, creating the second lock in the deadlock chain. Adding a covering index eliminates the key lookup, reducing each SELECT to a single index seek with a single row-level S lock rather than two row-level locks. This may not eliminate all deadlocks but will significantly reduce frequency. Combined with READ_COMMITTED_SNAPSHOT, the covering index change provides both a structural fix and an isolation-level fix. Claude should present both recommendations with the RCSI change as the more complete solution."
+}

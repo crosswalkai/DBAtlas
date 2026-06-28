@@ -1,0 +1,94 @@
+{
+  "id": "oracle-live-slowness-triage",
+  "dbms": "oracle",
+  "intent_category": "live_triage",
+  "intent_tags": ["slow", "slowness", "sluggish", "performance", "now", "current", "triage", "troubleshoot", "hanging", "waiting"],
+  "title": "Oracle Live Slowness Triage",
+  "description": "Identify sessions, waits, and SQL causing current performance degradation",
+  "entry_step": "session_summary",
+  "alternate_playbooks": ["oracle-top-consumers", "oracle-historical-awr"],
+  "max_steps": 5,
+  "version": 2,
+  "author": "A. Sharma",
+  "steps": {
+    "session_summary": {
+      "step_id": "session_summary",
+      "description": "Active session and wait class snapshot",
+      "script_ref": "scripts/oracle/session_summary.sql",
+      "mock_data_key": "oracle/live_slowness/session_summary.scenario-a.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["hot_sql_by_elapsed", "active_locks"],
+      "interactive_hints": {
+        "session_summary": "Current step — already executed",
+        "hot_sql_by_elapsed": "Run when active sessions show User I/O or CPU waits — identifies the specific SQL driving them",
+        "active_locks": "Run when active sessions show enqueue or lock waits — maps the blocking chain",
+        "sql_execution_plan": "Run after identifying a specific sql_id to confirm index usage or full table scan",
+        "redo_log_activity": "Run when log file sync waits are prominent — investigates redo generation and commit patterns",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "hot_sql_by_elapsed": {
+      "step_id": "hot_sql_by_elapsed",
+      "description": "Top SQL by elapsed time and buffer gets",
+      "script_ref": "scripts/oracle/hot_sql_elapsed.sql",
+      "mock_data_key": "oracle/live_slowness/hot_sql_by_elapsed.scenario-a.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["sql_execution_plan", "stop"],
+      "interactive_hints": {
+        "sql_execution_plan": "Run to get the execution plan for the top sql_id — confirms whether a full table scan or bad index choice is the cause",
+        "active_locks": "Run if lock contention also appeared in the session summary",
+        "redo_log_activity": "Run if redo/log waits appeared alongside the SQL",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "active_locks": {
+      "step_id": "active_locks",
+      "description": "Blocking sessions and lock wait chains",
+      "script_ref": "scripts/oracle/active_locks.sql",
+      "mock_data_key": "oracle/live_slowness/active_locks.scenario-a.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "hot_sql_by_elapsed": "Run alongside lock analysis to see if a specific SQL is both slow and holding locks",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "sql_execution_plan": {
+      "step_id": "sql_execution_plan",
+      "description": "Execution plan for a specific sql_id",
+      "script_ref": "scripts/oracle/execution_plan.sql",
+      "mock_data_key": "oracle/live_slowness/sql_execution_plan.scenario-a.json",
+      "parameters": ["sql_id"],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 30
+    },
+    "redo_log_activity": {
+      "step_id": "redo_log_activity",
+      "description": "Redo generation rate and log file sync waits",
+      "script_ref": "scripts/oracle/redo_activity.sql",
+      "mock_data_key": "oracle/live_slowness/redo_log_activity.scenario-a.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": ["stop"],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 10
+    }
+  }
+}

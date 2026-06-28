@@ -1,0 +1,105 @@
+{
+  "id": "sqlserver-wait-stats-deviation",
+  "dbms": "sqlserver",
+  "intent_category": "historical_forensics",
+  "intent_tags": [
+    "slow",
+    "sluggish",
+    "feels slow",
+    "monday",
+    "this morning",
+    "no obvious cause",
+    "wait stats",
+    "baseline",
+    "deviation",
+    "different",
+    "changed",
+    "memory grant",
+    "resource semaphore",
+    "after maintenance",
+    "weekend"
+  ],
+  "title": "SQL Server Wait Stats Baseline Deviation",
+  "description": "Systematic wait stats deviation analysis \u2014 compares current period against historical baseline to identify anomalous wait patterns with no obvious cause",
+  "entry_step": "wait_stats_delta",
+  "alternate_playbooks": [
+    "sqlserver-live-slowness-triage",
+    "sqlserver-plan-regression"
+  ],
+  "max_steps": 5,
+  "version": 1,
+  "author": "Q. Miller",
+  "steps": {
+    "wait_stats_delta": {
+      "step_id": "wait_stats_delta",
+      "description": "Wait stats delta \u2014 current hour vs same hour last week baseline",
+      "script_ref": "scripts/sqlserver/wait_stats_delta.sql",
+      "mock_data_key": "sqlserver/wait_stats_deviation/wait_stats_delta.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "memory_grant_analysis",
+        "query_store_weekend_changes"
+      ],
+      "interactive_hints": {
+        "memory_grant_analysis": "Run when RESOURCE_SEMAPHORE waits are elevated \u2014 diagnoses memory grant pressure from parallel or sort-heavy queries",
+        "query_store_weekend_changes": "Run to check if any query plans changed during the weekend maintenance window \u2014 correlates the timing of the deviation",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "memory_grant_analysis": {
+      "step_id": "memory_grant_analysis",
+      "description": "Memory grant usage \u2014 queries waiting for and holding large memory grants",
+      "script_ref": "scripts/sqlserver/memory_grant_analysis.sql",
+      "mock_data_key": "sqlserver/wait_stats_deviation/memory_grant_analysis.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "query_store_weekend_changes",
+        "stop"
+      ],
+      "interactive_hints": {
+        "query_store_weekend_changes": "Run to identify which specific query changed its plan over the weekend and is now requesting excessive memory",
+        "stop": "Stop here if memory grant analysis is sufficient for your recommendation"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "query_store_weekend_changes": {
+      "step_id": "query_store_weekend_changes",
+      "description": "Query Store plan changes during weekend maintenance window",
+      "script_ref": "scripts/sqlserver/qs_weekend_changes.sql",
+      "mock_data_key": "sqlserver/wait_stats_deviation/query_store_weekend_changes.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "index_rebuild_side_effects",
+        "stop"
+      ],
+      "interactive_hints": {
+        "index_rebuild_side_effects": "Run when index maintenance occurred over the weekend \u2014 checks whether rebuilt indexes invalidated plans that now require more memory",
+        "stop": "Stop here if the plan change history provides sufficient root cause"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "index_rebuild_side_effects": {
+      "step_id": "index_rebuild_side_effects",
+      "description": "Index rebuild history and associated statistics updates from weekend maintenance",
+      "script_ref": "scripts/sqlserver/index_rebuild_history.sql",
+      "mock_data_key": "sqlserver/wait_stats_deviation/index_rebuild_side_effects.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis \u2014 root cause should now be fully established"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    }
+  }
+}

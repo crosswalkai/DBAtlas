@@ -1,0 +1,17 @@
+{
+  "scenario_id": "scenario-b",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-top-consumers",
+  "step_id": "tempdb_contention",
+  "step_description": "TempDB usage and contention analysis",
+  "simulated_at": "2026-06-22T14:32:08Z",
+  "columns": ["session_id", "login_name", "tempdb_alloc_mb", "tempdb_dealloc_mb", "spid_status", "query_text_short"],
+  "rows": [
+    [58,  "ETL_USER",   1840.4, 420.2, "running",   "INSERT INTO FactSales SELECT ..."],
+    [102, "REPORT_USR",  284.1,  12.4, "running",   "SELECT * FROM dbo.vw_SalesReport ..."],
+    [71,  "APP_USER",    18.2,   18.2, "suspended", "SELECT o.*, c.* FROM Orders ..."],
+    [83,  "APP_USER",    17.9,   17.9, "suspended", "SELECT o.*, c.* FROM Orders ..."]
+  ],
+  "row_count": 4,
+  "narrative_hint": "ETL_USER is consuming 1.84GB of tempdb — this is the primary tempdb pressure source. The ETL likely uses large sort or hash operations spilling to tempdb. REPORT_USR is also consuming 284MB suggesting the report query is performing large intermediate sorts. Together they are consuming over 2GB of tempdb during peak hours. Claude should recommend moving the ETL to off-peak hours as the primary fix, and adding an index to the report query to eliminate the tempdb sort spill."
+}

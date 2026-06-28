@@ -1,0 +1,17 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-stale-statistics",
+  "step_id": "cardinality_estimate_errors",
+  "step_description": "Queries with largest estimated vs actual row count gap",
+  "simulated_at": "2026-06-22T10:00:04Z",
+  "columns": ["query_id", "query_text_short", "estimated_rows", "actual_rows", "estimation_error_factor", "join_type_chosen", "optimal_join_type", "avg_duration_ms", "table_with_stale_stats"],
+  "rows": [
+    [2841, "SELECT o.order_id, o.total FROM Orders o WHERE o.status = @s AND o.created_date > @d", 1, 840284, 840284.0, "Nested Loops", "Hash Join", 4820.4, "Orders.IX_Orders_Status_Date"],
+    [3104, "SELECT oi.* FROM OrderItems oi WHERE oi.order_id IN (SELECT order_id FROM Orders WHERE customer_id = @c)", 4, 28420, 7105.0, "Nested Loops", "Hash Join", 2840.2, "OrderItems._WA_Sys_00000005_Order"],
+    [4201, "SELECT COUNT(*) FROM AuditLog WHERE event_type = @t AND created_at > @d", 1, 4820000, 4820000.0, "Stream Aggregate + Index Seek", "Columnstore or Covering Index Scan", 18420.4, "AuditLog._WA_Sys_00000002_Audit"],
+    [1820, "SELECT p.name, SUM(oi.qty) FROM Products p JOIN OrderItems oi ON p.id = oi.product_id", 284, 840000, 2957.7, "Nested Loops", "Hash Join", 1284.2, "OrderItems._WA_Sys_00000005_Order"]
+  ],
+  "row_count": 4,
+  "narrative_hint": "Query 2841 has the worst cardinality error — estimated 1 row, actual 840,284 rows — an error factor of 840,284x. This is causing the optimizer to choose Nested Loops which is catastrophically wrong for 840K rows. Query 4201 has an estimation error of 4.82 million to 1 on AuditLog — this COUNT query is running full scans and taking 18 seconds because the optimizer has no idea how many rows match. All four queries are choosing suboptimal join or scan strategies due to stale statistics. Claude should generate UPDATE STATISTICS commands for Orders, OrderItems, and AuditLog with FULLSCAN and WITH ROWCOUNT if applicable, and note that trace flag 2371 or the ASYNC_STATS_UPDATE option should be considered."
+}

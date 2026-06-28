@@ -1,0 +1,17 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-plan-regression",
+  "step_id": "qs_stats_change_timeline",
+  "step_description": "Statistics update history correlated with query regression",
+  "simulated_at": "2026-06-22T09:00:08Z",
+  "columns": ["stats_update_time", "table_name", "statistics_name", "rows_sampled", "rows_total", "sampling_pct", "modification_counter", "updated_by"],
+  "rows": [
+    ["2026-06-21 02:14:08", "Orders",    "IX_Orders_Status_Date",  420000, 42000000, 1.0,  8420420, "AUTO_UPDATE_STATS"],
+    ["2026-06-21 02:14:12", "Orders",    "_WA_Sys_00000003_4AB81AF0", 420000, 42000000, 1.0, 8420420, "AUTO_UPDATE_STATS"],
+    ["2026-06-21 02:14:18", "Customers", "IX_Customers_Email",      84000,  8400000,  1.0,  284200, "AUTO_UPDATE_STATS"],
+    ["2026-06-21 02:18:04", "Products",  "IX_Products_Category",    18000,  1800000,  1.0,   42000, "AUTO_UPDATE_STATS"]
+  ],
+  "row_count": 4,
+  "narrative_hint": "Root cause confirmed. AUTO_UPDATE_STATS updated IX_Orders_Status_Date at 02:14:08 — exactly 24 seconds before the bad plan 8891 was compiled at 02:14:22. The statistics sampled only 420,000 rows out of 42,000,000 (1% sampling rate) which is the default for large tables. With 8.4 million row modifications since the last update, the 1% sample produced an inaccurate histogram that caused the cardinality estimate to drop from 8,418 to 1. The fix is two-pronged: (1) force plan 8420 immediately for relief, (2) rebuild statistics with FULLSCAN or higher sampling rate and consider sp_autostats to prevent recurrence. Claude should provide both the immediate fix and the permanent fix."
+}

@@ -1,0 +1,100 @@
+{
+  "id": "sqlserver-ag-replica-lag",
+  "dbms": "sqlserver",
+  "intent_category": "live_triage",
+  "intent_tags": [
+    "availability group",
+    "AG",
+    "replica",
+    "lag",
+    "secondary",
+    "redo",
+    "send queue",
+    "RPO",
+    "RTO",
+    "synchronization",
+    "behind",
+    "failover",
+    "always on"
+  ],
+  "title": "SQL Server AG Replica Lag",
+  "description": "Diagnose Availability Group secondary lag \u2014 distinguishes network bottleneck (send queue) from disk bottleneck (redo queue) and quantifies RPO exposure",
+  "entry_step": "ag_health_overview",
+  "alternate_playbooks": [],
+  "max_steps": 4,
+  "version": 1,
+  "author": "J. Smith",
+  "steps": {
+    "ag_health_overview": {
+      "step_id": "ag_health_overview",
+      "description": "AG health overview \u2014 sync state, send queue, redo queue per replica",
+      "script_ref": "scripts/sqlserver/ag_health_overview.sql",
+      "mock_data_key": "sqlserver/ag_replica_lag/ag_health_overview.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "ag_redo_queue_detail",
+        "ag_network_throughput"
+      ],
+      "interactive_hints": {
+        "ag_redo_queue_detail": "Run when redo queue is growing \u2014 diagnoses whether the secondary disk is falling behind applying log records",
+        "ag_network_throughput": "Run when send queue is growing \u2014 measures log send rate vs generation rate to identify network saturation",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 15
+    },
+    "ag_redo_queue_detail": {
+      "step_id": "ag_redo_queue_detail",
+      "description": "Secondary redo queue analysis \u2014 log apply rate vs generation rate",
+      "script_ref": "scripts/sqlserver/ag_redo_detail.sql",
+      "mock_data_key": "sqlserver/ag_replica_lag/ag_redo_queue_detail.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "ag_rpo_calculation",
+        "stop"
+      ],
+      "interactive_hints": {
+        "ag_rpo_calculation": "Run to calculate the exact RPO exposure in seconds and identify which databases are most at risk",
+        "stop": "Stop here if redo queue detail is sufficient for your assessment"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "ag_network_throughput": {
+      "step_id": "ag_network_throughput",
+      "description": "Log send rate vs log generation rate \u2014 network throughput analysis",
+      "script_ref": "scripts/sqlserver/ag_network_throughput.sql",
+      "mock_data_key": "sqlserver/ag_replica_lag/ag_network_throughput.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "ag_rpo_calculation",
+        "stop"
+      ],
+      "interactive_hints": {
+        "ag_rpo_calculation": "Run to translate the current lag into a business-impact RPO number",
+        "stop": "Stop here if network analysis is sufficient"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "ag_rpo_calculation": {
+      "step_id": "ag_rpo_calculation",
+      "description": "RPO exposure calculation \u2014 data-at-risk window per database",
+      "script_ref": "scripts/sqlserver/ag_rpo_calc.sql",
+      "mock_data_key": "sqlserver/ag_replica_lag/ag_rpo_calculation.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with RPO impact and remediation"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

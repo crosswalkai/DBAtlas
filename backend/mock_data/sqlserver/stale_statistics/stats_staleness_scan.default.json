@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-stale-statistics",
+  "step_id": "stats_staleness_scan",
+  "step_description": "Statistics staleness scan across all user tables",
+  "simulated_at": "2026-06-22T10:00:00Z",
+  "columns": ["table_name", "stats_name", "last_updated", "days_since_update", "rows_at_last_update", "current_rows", "modification_counter", "modification_pct", "auto_update_threshold"],
+  "rows": [
+    ["Orders",        "IX_Orders_Status_Date",     "2026-05-05 02:14:00", 47, 12000000, 42000000, 30000000, 250.0, "20% threshold = auto would need 2.4M mods — DID NOT TRIGGER"],
+    ["OrderItems",    "_WA_Sys_00000005_Order",    "2026-05-12 03:22:00", 40, 28000000, 84000000, 56000000, 200.0, "20% threshold = auto would need 5.6M mods — DID NOT TRIGGER"],
+    ["CustomerStats", "PK_CustomerStats",           "2026-06-01 04:08:00", 20, 8400000,  9200000,   800000,   9.5, "Within auto threshold — but data skew is high"],
+    ["Products",      "IX_Products_Category_Price", "2026-06-15 01:42:00",  6, 1800000,  1840000,    40000,   2.2, "Current — no action needed"],
+    ["AuditLog",      "_WA_Sys_00000002_Audit",    "2026-04-28 05:14:00", 54, 4200000, 28400000, 24200000, 576.0, "CRITICAL — 576% modification rate since last update"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "Two critical cases: AuditLog at 576% modification rate since last update (54 days ago) and Orders at 250% (47 days). Both have grown so much since statistics were last updated that the histograms bear no resemblance to the current data distribution. The auto-update threshold was never triggered because the 20% rule is calculated against the rows AT THE TIME of the last update — not the current row count. For a table that grew from 12M to 42M rows, the threshold was 2.4M modifications but 30M occurred before it reset. This is the well-known auto-stats threshold problem on large tables. Claude should identify both as critical and proceed to cardinality estimate errors to see the query impact."
+}

@@ -1,0 +1,17 @@
+{
+  "scenario_id": "scenario-a",
+  "dbms": "oracle",
+  "playbook_id": "oracle-live-slowness-triage",
+  "step_id": "session_summary",
+  "step_description": "Active session and wait class snapshot",
+  "simulated_at": "2026-06-22T14:28:00Z",
+  "columns": ["SID", "USERNAME", "STATUS", "WAIT_CLASS", "EVENT", "SECONDS_IN_WAIT", "SQL_ID"],
+  "rows": [
+    [142, "APP_USER", "ACTIVE", "User I/O", "db file sequential read", 12, "8fk2m9vbqt3dx"],
+    [215, "APP_USER", "ACTIVE", "User I/O", "db file sequential read", 8,  "8fk2m9vbqt3dx"],
+    [301, "APP_USER", "ACTIVE", "User I/O", "db file sequential read", 3,  "g7hn2xk4pq8rt"],
+    [88,  "BATCH_USR","INACTIVE","Idle",     "SQL*Net message from client", 0, null]
+  ],
+  "row_count": 4,
+  "narrative_hint": "Three active sessions all showing db file sequential read waits with the same or similar sql_ids. No lock contention or enqueue waits. This strongly points to a single SQL statement performing excessive physical I/O — likely a full table scan or inadequate index. Claude should identify User I/O as the dominant wait class and recommend running hot_sql_by_elapsed to identify the specific SQL."
+}

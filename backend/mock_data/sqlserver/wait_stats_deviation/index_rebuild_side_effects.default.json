@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-wait-stats-deviation",
+  "step_id": "index_rebuild_side_effects",
+  "step_description": "Index rebuild history and statistics updates from weekend maintenance",
+  "simulated_at": "2026-06-22T09:00:12Z",
+  "columns": ["operation_time", "table_name", "index_name", "operation_type", "statistics_updated", "sampling_method", "rows_before", "rows_after", "row_change_pct", "duration_minutes", "plan_invalidations"],
+  "rows": [
+    ["2026-06-21 01:00:00", "Orders",     "IX_Orders_Status_Date",     "REBUILD", "Yes — WITH FULLSCAN", "FULLSCAN", 12000000,  42000000, 250.0, 48.2, 3],
+    ["2026-06-21 02:00:00", "Orders",     "IX_Orders_CustomerID",      "REBUILD", "Yes — WITH FULLSCAN", "FULLSCAN", 12000000,  42000000, 250.0, 42.4, 3],
+    ["2026-06-21 03:00:00", "OrderItems", "IX_OrderItems_ProductID",   "REBUILD", "Yes — WITH FULLSCAN", "FULLSCAN", 28000000, 840000000,2900.0, 284.2, 18],
+    ["2026-06-21 05:48:00", "OrderItems", "IX_OrderItems_OrderID",     "REBUILD", "Yes — WITH FULLSCAN", "FULLSCAN", 28000000, 840000000,2900.0, 182.4, 18],
+    ["2026-06-21 06:14:00", "Products",   "IX_Products_Category_Price","REBUILD", "Yes — WITH FULLSCAN", "FULLSCAN",  1800000,   1840000,   2.2,  12.4,  1]
+  ],
+  "row_count": 5,
+  "narrative_hint": "Root cause fully established. The OrderItems table grew from 28M to 840M rows (2,900%) without statistics being updated since the last rebuild — this is the source of both the memory grant inflation and the plan regression. The FULLSCAN rebuild at 03:00 revealed the true table size and caused 18 plan invalidations including the revenue report query. The scale of the data growth (30x) was unprecedented and the maintenance script was not designed to handle it — the rebuild took 284 minutes and the subsequent plan recompilations created the memory grant storm. Claude should recommend: (1) immediate Resource Governor cap on memory grants for the report workload group, (2) review the data growth trend and project when the next maintenance window will face the same problem, (3) consider partitioning OrderItems given its scale, (4) implement MAXDOP=4 hint on the revenue report query to halve memory grant requirements."
+}

@@ -1,0 +1,16 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-deadlock-analysis",
+  "step_id": "xe_deadlock_detail",
+  "step_description": "Full deadlock chain for DL-20260622-001",
+  "simulated_at": "2026-06-22T13:42:18Z",
+  "columns": ["role", "spid", "login", "wait_resource", "lock_mode_held", "lock_mode_requested", "sql_text", "index_name", "isolation_level"],
+  "rows": [
+    ["VICTIM",   284, "app_user", "RID: SalesDB:1:42841:4", "X",  "S",  "SELECT o.order_id, o.status, o.total FROM Orders o WHERE o.customer_id = @cid ORDER BY o.created_date DESC", "IX_Orders_CustomerID", "READ COMMITTED"],
+    ["SURVIVOR", 291, "app_user", "RID: SalesDB:1:42841:4", "S",  "X",  "UPDATE Orders SET status = @new_status, updated_at = GETDATE() WHERE order_id = @oid", "PK_Orders", "READ COMMITTED"],
+    ["CONTEXT",  284, "app_user", "RID: SalesDB:1:38204:8", "X",  null, "UPDATE Orders SET status = @new_status, updated_at = GETDATE() WHERE order_id = @prev_oid", "PK_Orders", "READ COMMITTED"]
+  ],
+  "row_count": 3,
+  "narrative_hint": "Classic forward-backward deadlock. Session 284 (victim) first updated order A (holding X lock on row 38204), then tried to SELECT customer's orders which happened to include order B (row 42841) that session 291 had just updated. Session 291 then tried to update order A. Cycle: 284 holds X on row 38204, wants S on row 42841. 291 holds X on row 42841, wants X on row 38204. The root cause is that OrderService processes the UPDATE before the SELECT in one code path and SELECT before UPDATE in another, causing inconsistent lock acquisition order. Fix options: (1) reorder operations consistently, (2) add NOLOCK hint to the SELECT if dirty reads are acceptable, (3) enable READ_COMMITTED_SNAPSHOT to eliminate reader-writer conflicts. Option 3 is the architectural fix."
+}

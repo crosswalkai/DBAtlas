@@ -1,0 +1,81 @@
+{
+  "id": "sqlserver-top-consumers",
+  "dbms": "sqlserver",
+  "intent_category": "resource_profiling",
+  "intent_tags": [
+    "top",
+    "consumers",
+    "resource",
+    "cpu",
+    "memory",
+    "who",
+    "what",
+    "heaviest",
+    "expensive",
+    "worst"
+  ],
+  "title": "SQL Server Top Resource Consumers",
+  "description": "Identify top SQL and sessions by CPU, duration, and logical reads via Query Store and DMVs",
+  "entry_step": "session_summary",
+  "alternate_playbooks": [
+    "sqlserver-live-slowness-triage"
+  ],
+  "max_steps": 4,
+  "version": 1,
+  "author": "A. Pogaku",
+  "steps": {
+    "session_summary": {
+      "step_id": "session_summary",
+      "description": "Active session snapshot with wait types and resource usage",
+      "script_ref": "scripts/sqlserver/session_summary.sql",
+      "mock_data_key": "sqlserver/top_consumers/session_summary.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "query_store_top_consumers",
+        "tempdb_contention"
+      ],
+      "interactive_hints": {
+        "query_store_top_consumers": "Run to identify the specific queries driving CPU and duration \u2014 ranks all queries by total resource consumption over time",
+        "tempdb_contention": "Run when sessions show PAGEIOLATCH or sort spill indicators \u2014 identifies which sessions are pressuring tempdb",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 20
+    },
+    "query_store_top_consumers": {
+      "step_id": "query_store_top_consumers",
+      "description": "Query Store top consumers by CPU, duration, execution count",
+      "script_ref": "scripts/sqlserver/query_store_top_consumers.sql",
+      "mock_data_key": "sqlserver/top_consumers/query_store_top_consumers.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "tempdb_contention",
+        "stop"
+      ],
+      "interactive_hints": {
+        "tempdb_contention": "Run to confirm whether the top queries are spilling to tempdb \u2014 important for queries with large sorts or hash joins",
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    },
+    "tempdb_contention": {
+      "step_id": "tempdb_contention",
+      "description": "TempDB allocation and contention by session",
+      "script_ref": "scripts/sqlserver/tempdb_contention.sql",
+      "mock_data_key": "sqlserver/top_consumers/tempdb_contention.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final analysis with results gathered so far"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 15
+    }
+  }
+}

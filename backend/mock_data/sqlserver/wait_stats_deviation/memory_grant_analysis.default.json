@@ -1,0 +1,17 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-wait-stats-deviation",
+  "step_id": "memory_grant_analysis",
+  "step_description": "Memory grant usage — queries waiting and holding large grants",
+  "simulated_at": "2026-06-22T09:00:04Z",
+  "columns": ["session_id", "login_name", "sql_text_short", "requested_memory_mb", "granted_memory_mb", "used_memory_mb", "grant_wait_ms", "ideal_memory_mb", "dop", "query_cost_estimate"],
+  "rows": [
+    [284, "report_user", "SELECT r.region, p.category, SUM(oi.qty * p.price) AS revenue FROM OrderItems oi JOIN Products p ON oi.product_id = p.id JOIN Orders o ON oi.order_id = o.order_id JOIN Regions r ON o.region_id = r.id GROUP BY r.region, p.category ORDER BY revenue DESC", 28420, 28420, 4820, 0, 840, 8, 48420.4],
+    [301, "report_user", "SELECT r.region, p.category, SUM(oi.qty * p.price) AS revenue FROM OrderItems oi JOIN Products p ON oi.product_id = p.id JOIN Orders o ON oi.order_id = o.order_id JOIN Regions r ON o.region_id = r.id GROUP BY r.region, p.category ORDER BY revenue DESC", 28420, 0, 0, 84200, 840, 8, 48420.4],
+    [312, "report_user", "SELECT r.region, p.category, SUM(oi.qty * p.price) AS revenue FROM OrderItems oi JOIN Products p ON oi.product_id = p.id JOIN Orders o ON oi.order_id = o.order_id JOIN Regions r ON o.region_id = r.id GROUP BY r.region, p.category ORDER BY revenue DESC", 28420, 0, 0, 92400, 840, 8, 48420.4],
+    [328, "app_user",   "SELECT TOP 100 o.order_id, o.total FROM Orders o WHERE o.region_id = @rid ORDER BY o.created_date DESC", 42, 42, 18, 0, 42, 1, 8.4]
+  ],
+  "row_count": 4,
+  "narrative_hint": "One query is the source of the entire RESOURCE_SEMAPHORE crisis. The revenue report query is requesting 28,420 MB (28 GB) of memory per execution — 33x its ideal grant of 840MB. Session 284 holds the grant and is executing. Sessions 301 and 312 are queued and waiting 84-92 seconds for their grants. Three concurrent executions of this query would require 84GB of memory grants, exhausting the server's max server memory. The query_cost_estimate of 48,420 means the optimizer believes this is an extremely expensive operation — likely because an index rebuild changed the statistics to show much larger row counts for the joins. The DOP of 8 multiplies the memory request 8x. Claude should identify this query as the culprit and proceed to Query Store to find the plan change."
+}

@@ -1,0 +1,17 @@
+{
+  "scenario_id": "scenario-c",
+  "dbms": "oracle",
+  "playbook_id": "oracle-historical-awr",
+  "step_id": "awr_sql_delta",
+  "step_description": "Top SQL by elapsed time delta between AWR snapshots",
+  "simulated_at": "2026-06-21T18:00:00Z",
+  "columns": ["sql_id", "sql_text_short", "executions_delta", "elapsed_s_delta", "cpu_s_delta", "buffer_gets_delta", "disk_reads_delta", "module"],
+  "rows": [
+    ["7tqm4xwjnb2dp", "UPDATE ORDERS SET status='PROCESSED' WHERE order_id=:1", 48204, 14640.2, 284.1, 192816, 0,    "BATCH_ORDER_PROC"],
+    ["8fk2m9vbqt3dx", "SELECT * FROM ORDERS WHERE customer_id=:1 AND status=:2",  1842,  2840.4, 420.8, 450112, 82304, "WebApp"],
+    ["kp9nx2hqw7ztm", "INSERT INTO ORDER_AUDIT VALUES (:1,:2,:3,:4,:5)",          48198,   420.2,  84.2,   9640,  0,    "BATCH_ORDER_PROC"],
+    ["rv2hs6ptmq8wc", "SELECT seq_order_id.NEXTVAL FROM dual",                    48204,   184.4,  42.1,    482,  0,    "BATCH_ORDER_PROC"]
+  ],
+  "row_count": 4,
+  "narrative_hint": "SQL 7tqm4xwjnb2dp executed 48,204 times — one execution per order processed by BATCH_ORDER_PROC. Each execution commits individually (confirmed by matching log file sync count of 48,420). The UPDATE + INSERT + sequence SELECT pattern shows BATCH_ORDER_PROC is processing one order at a time with an individual commit per order. Changing to batch commits of 500-1000 rows would reduce log file sync waits by ~99%. Claude should provide a specific recommendation to add batch commit logic to BATCH_ORDER_PROC and estimate the performance improvement."
+}

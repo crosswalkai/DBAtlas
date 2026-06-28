@@ -1,0 +1,34 @@
+{
+  "scenario_id": "default",
+  "dbms": "sqlserver",
+  "playbook_id": "sqlserver-sleeping-sessions",
+  "step_id": "check_sleeping_session_blocking",
+  "step_description": "Check if sleeping sessions are causing locks or blocking other queries",
+  "simulated_at": "2026-06-27T20:05:00Z",
+  "columns": [
+    "blocking_spid",
+    "blocked_spid",
+    "blocked_query",
+    "lock_type",
+    "wait_time_ms",
+    "wait_resource",
+    "blocking_status",
+    "blocking_login",
+    "blocking_host"
+  ],
+  "rows": [
+    [
+      73,
+      94,
+      "UPDATE Orders SET Status = 'Processing' WHERE OrderId = 849202",
+      "KEY (X)",
+      3254000,
+      "KEY: 5:72057594038386688 (03006a8f152d)",
+      "sleeping",
+      "app_user",
+      "AppServer-01"
+    ]
+  ],
+  "row_count": 1,
+  "narrative_hint": "This confirms that the sleeping SPID 73 is holding an exclusive Key Lock (X) on the Orders table, which is blocking SPID 94 (an active UPDATE query). The blocked query has been waiting for 3,254 seconds (almost an hour). Since SPID 73 is sleeping, the application must have opened a transaction, updated or queried the row, and then abandoned the thread without calling COMMIT or ROLLBACK. The recommended DBA action is to kill SPID 73 to release the block immediately, and then investigate the application connection pool leak."
+}

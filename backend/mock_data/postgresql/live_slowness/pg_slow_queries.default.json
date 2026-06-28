@@ -1,0 +1,17 @@
+{
+  "scenario_id": "default",
+  "dbms": "postgresql",
+  "playbook_id": "postgresql-live-slowness-triage",
+  "step_id": "pg_slow_queries",
+  "step_description": "Top slow queries from pg_stat_statements",
+  "simulated_at": "2026-06-22T14:32:05Z",
+  "columns": ["query_short", "calls", "total_time_s", "mean_time_ms", "rows", "shared_blks_hit", "shared_blks_read"],
+  "rows": [
+    ["SELECT * FROM orders WHERE customer_id=$1",        48420, 2841.4, 58.7,   48420, 1842400,  982400],
+    ["SELECT o.*, c.* FROM orders o JOIN customers c",    1820, 1284.2, 705.6,   1820,  284200,  182400],
+    ["UPDATE orders SET status=$1 WHERE order_id=$2",    48198,  420.4,   8.7,  48198,    9640,       0],
+    ["INSERT INTO order_events VALUES ($1,$2,$3,$4,$5)", 96400,  284.1,   2.9,  96400,   19280,       0]
+  ],
+  "row_count": 4,
+  "narrative_hint": "The SELECT on orders is called 48,420 times with 982,400 shared block reads — this is a sequential scan on a large table for every customer lookup. The mean time of 58.7ms is high for a simple lookup, confirming missing index. The JOIN query averages 705ms per call which is extremely high. Both SELECT queries need indexes. The UPDATE and INSERT are fast but high volume — they contribute to the lock held by PID 3104."
+}

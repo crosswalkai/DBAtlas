@@ -1,0 +1,15 @@
+{
+  "scenario_id": "default",
+  "dbms": "postgresql",
+  "playbook_id": "postgresql-live-slowness-triage",
+  "step_id": "pg_lock_contention",
+  "step_description": "Lock contention and blocking query chains",
+  "simulated_at": "2026-06-22T14:32:03Z",
+  "columns": ["blocked_pid", "blocked_user", "blocking_pid", "blocking_user", "lock_type", "relation_name", "blocked_query_short", "blocking_query_short"],
+  "rows": [
+    [1842, "app_user", 3104, "app_user", "RowShareLock", "orders", "SELECT * FROM orders WHERE customer_id=$1", "idle in transaction"],
+    [2201, "app_user", 3104, "app_user", "RowShareLock", "orders", "SELECT * FROM orders WHERE customer_id=$1", "idle in transaction"]
+  ],
+  "row_count": 2,
+  "narrative_hint": "Both blocked sessions are waiting on RowShareLock on the orders table held by PID 3104. PID 3104's query shows as 'idle in transaction' meaning the transaction is open but the client is not sending any commands. This confirms an application-level connection leak or client crash while in a transaction. The fix requires both an immediate action (kill PID 3104) and a permanent fix (idle_in_transaction_session_timeout parameter)."
+}

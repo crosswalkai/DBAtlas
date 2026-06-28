@@ -1,0 +1,18 @@
+{
+  "scenario_id": "default",
+  "dbms": "oracle",
+  "playbook_id": "oracle-top-consumers",
+  "step_id": "top_sessions_cpu",
+  "step_description": "Top sessions by CPU consumption and module",
+  "simulated_at": "2026-06-22T14:32:04Z",
+  "columns": ["sid", "username", "module", "action", "cpu_time_s", "physical_reads", "logical_reads", "sql_id"],
+  "rows": [
+    [142, "APP_USER",    "WebApp_OrderService",   "getOrdersByCustomer", 1840.2, 982400, 4820400, "8fk2m9vbqt3dx"],
+    [215, "REPORT_USER", "APEX_REPORTING",        "SalesSummaryReport",  1240.4, 420400, 2840200, "7tqm4xwjnb2dp"],
+    [301, "APP_USER",    "WebApp_AccountService", "getCustomerAccounts",  420.4, 284200, 1840200, "rv2hs6ptmq8wc"],
+    [88,  "APP_USER",    "WebApp_OrderService",   "updateCustomerStats",   84.2,      0,   96840, "kp9nx2hqw7ztm"],
+    [422, "BATCH_USR",   "NightlyAuditBatch",     "insertAuditRecords",     8.4,      0,   96840, "dv3rs5mjwc1bn"]
+  ],
+  "row_count": 5,
+  "narrative_hint": "WebApp_OrderService is driving the dominant SQL (8fk2m9vbqt3dx) through the getOrdersByCustomer action — this is an OLTP application path being called 48,420 times. APEX_REPORTING is running the heavy aggregate join. Both the WebApp and the reporting tool are running inefficient queries. Claude should recommend: (1) add composite index on orders(customer_id, status) for the WebApp query, (2) review the APEX report query for a covering index or query rewrite, and (3) consider separating reporting workload to a read replica."
+}
