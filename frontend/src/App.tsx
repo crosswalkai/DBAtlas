@@ -247,8 +247,9 @@ function SideNav({
       background: 'var(--surface-1)',
       borderRight: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column',
-      alignItems: 'center', paddingTop: 10, gap: 4,
+      alignItems: 'center', gap: 4,
     }}>
+      <div style={{ flex: 1 }} />
       {items.map(item => {
         const active = activeView === item.id;
         return (
@@ -367,22 +368,25 @@ export default function App() {
       }}>
 
         {/* Logo */}
-        <button
-          onClick={handleReset}
-          title="Go to homepage"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, marginRight: 4,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-            borderRadius: 'var(--radius)', transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
-          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-        >
-          <img src="/DBAtlas-mark.svg" alt="DBAtlas" style={{ height: 28, width: 28, flexShrink: 0 }} />
-          <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto' }} />
-        </button>
-
-        <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
+        {!(activeView === 'diagnose' && isIdle) && (
+          <>
+            <button
+              onClick={handleReset}
+              title="Go to homepage"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, marginRight: 4,
+                background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+                borderRadius: 'var(--radius)', transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              <img src="/DBAtlas-mark.svg" alt="DBAtlas" style={{ height: 28, width: 28, flexShrink: 0 }} />
+              <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto' }} />
+            </button>
+            <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
+          </>
+        )}
 
         {/* Session context pills */}
         {hasSession && activeView === 'diagnose' && (
