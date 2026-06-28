@@ -186,9 +186,9 @@ Fourteen playbooks are authored across the four platforms, with the deepest cove
 
 | --- | --- | --- | --- | --- |
 | Playbook | Platform | Intent | Author |
-| oracle-live-slowness-triage | Oracle | Live Triage | A. Sharma |
-| oracle-top-consumers | Oracle | Resource Profiling | A. Sharma |
-| oracle-historical-awr | Oracle | Historical Forensics | A. Sharma |
+| oracle-live-slowness-triage | Oracle | Live Triage | A. Simmons |
+| oracle-top-consumers | Oracle | Resource Profiling | A. Simmons |
+| oracle-historical-awr | Oracle | Historical Forensics | A. Simmons |
 | sqlserver-live-slowness-triage | SQL Server | Live Triage | A. Pogaku |
 | sqlserver-top-consumers | SQL Server | Resource Profiling | A. Pogaku |
 | sqlserver-plan-regression | SQL Server | Historical Forensics | A. Pogaku |

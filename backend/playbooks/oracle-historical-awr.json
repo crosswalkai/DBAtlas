@@ -25,7 +25,7 @@
   ],
   "max_steps": 5,
   "version": 1,
-  "author": "A. Sharma",
+  "author": "A. Simmons",
   "steps": {
     "awr_snapshot_finder": {
       "step_id": "awr_snapshot_finder",

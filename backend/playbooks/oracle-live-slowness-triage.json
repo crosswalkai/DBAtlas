@@ -23,7 +23,7 @@
   ],
   "max_steps": 5,
   "version": 2,
-  "author": "A. Sharma",
+  "author": "A. Simmons",
   "steps": {
     "session_summary": {
       "step_id": "session_summary",

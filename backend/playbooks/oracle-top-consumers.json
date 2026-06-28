@@ -23,7 +23,7 @@
   ],
   "max_steps": 4,
   "version": 1,
-  "author": "A. Sharma",
+  "author": "A. Simmons",
   "steps": {
     "sql_top_cpu_summary": {
       "step_id": "sql_top_cpu_summary",

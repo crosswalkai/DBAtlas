@@ -93,9 +93,9 @@ DBAtlas/
 
 | ID | DBMS | Intent | Author |
 |---|---|---|---|
-| oracle-live-slowness-triage | oracle | live_triage | A. Siments |
-| oracle-top-consumers | oracle | resource_profiling | A. Siments |
-| oracle-historical-awr | oracle | historical_forensics | A. Siments |
+| oracle-live-slowness-triage | oracle | live_triage | A. Simmons |
+| oracle-top-consumers | oracle | resource_profiling | A. Simmons |
+| oracle-historical-awr | oracle | historical_forensics | A. Simmons |
 | sqlserver-live-slowness-triage | sqlserver | live_triage | A. Pogaku |
 | sqlserver-top-consumers | sqlserver | resource_profiling | A. Pogaku |
 | sqlserver-plan-regression | sqlserver | historical_forensics | A. Pogaku |
