@@ -17,7 +17,7 @@ function CopySmallButton({ text }: { text: string }) {
   const copy = () => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), 2000);
     });
   };
   return (
@@ -26,15 +26,16 @@ function CopySmallButton({ text }: { text: string }) {
       onClick={copy}
       title="Copy to clipboard"
       style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        fontSize: 10, color: copied ? 'var(--success)' : 'var(--text-faint)',
-        padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 2,
-        transition: 'color 0.15s',
+        fontSize: 11, padding: '3px 8px',
+        background: copied ? 'var(--success-light)' : 'var(--surface-2)',
+        border: `1px solid ${copied ? 'var(--success-border)' : 'var(--border)'}`,
+        borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+        color: copied ? 'var(--success)' : 'var(--text-muted)',
+        fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
         outline: 'none',
       }}
     >
-      <span>{copied ? '✓' : '📋'}</span>
-      <span>{copied ? 'Copied' : 'Copy'}</span>
+      {copied ? '✓ Copied' : '⧉ Copy'}
     </button>
   );
 }
@@ -45,7 +46,7 @@ function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?:
     const text = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), 2000);
     });
   };
   return (
@@ -53,16 +54,16 @@ function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?:
       type="button"
       onClick={copyAll}
       style={{
-        background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer',
-        fontSize: 11, fontWeight: 600, color: copied ? 'var(--success)' : 'var(--accent)',
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 8px', borderRadius: 'var(--radius-sm)',
-        transition: 'all 0.15s',
+        fontSize: 11, padding: '3px 8px',
+        background: copied ? 'var(--success-light)' : 'var(--surface-2)',
+        border: `1px solid ${copied ? 'var(--success-border)' : 'var(--border)'}`,
+        borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+        color: copied ? 'var(--success)' : 'var(--text-muted)',
+        fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
         outline: 'none',
       }}
     >
-      <span>{copied ? '✓' : '📋'}</span>
-      <span>{copied ? 'Copied!' : label}</span>
+      {copied ? '✓ Copied' : `⧉ ${label}`}
     </button>
   );
 }
