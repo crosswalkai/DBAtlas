@@ -15,7 +15,7 @@ interface Scenario {
   ticket: string;
 }
 
-const SCENARIOS: Record<'sqlserver' | 'oracle', Scenario[]> = {
+const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scenario[]> = {
   sqlserver: [
     {
       label: "Plan Regression (SS-1)",
@@ -55,6 +55,22 @@ const SCENARIOS: Record<'sqlserver' | 'oracle', Scenario[]> = {
       server: "PRODDB-ORA-01",
       ticket: "INC0042873"
     }
+  ],
+  postgresql: [
+    {
+      label: "Live Triage (PG-1)",
+      question: "Check for any active transactions blocking our update queries on the customer table. Are there any locks?",
+      server: "PG-DB-01",
+      ticket: "INC0022871"
+    }
+  ],
+  mongodb: [
+    {
+      label: "Live Ops Triage (MG-1)",
+      question: "Check current active operations. Are we having slow writes or long-running collection scans on the catalog database?",
+      server: "MONGO-01",
+      ticket: "INC0032871"
+    }
   ]
 };
 
@@ -67,9 +83,8 @@ export function InputForm({ onSubmit, loading }: Props) {
   const [dbmsOverride, setDbmsOverride] = useState<DbmsType>('oracle');
   const [ticketError, setTicketError] = useState('');
 
-  // Demo Assistant states
   const [showAssistant, setShowAssistant] = useState(false);
-  const [assistantDbms, setAssistantDbms] = useState<'sqlserver' | 'oracle'>('sqlserver');
+  const [assistantDbms, setAssistantDbms] = useState<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb'>('sqlserver');
   const [selectedScenario, setSelectedScenario] = useState<number | ''>('');
 
   const validateTicket = (val: string) => {
@@ -80,7 +95,7 @@ export function InputForm({ onSubmit, loading }: Props) {
     }
   };
 
-  const handleDbmsChange = (dbms: 'sqlserver' | 'oracle') => {
+  const handleDbmsChange = (dbms: 'sqlserver' | 'oracle' | 'postgresql' | 'mongodb') => {
     setAssistantDbms(dbms);
     setSelectedScenario('');
   };
@@ -361,6 +376,8 @@ export function InputForm({ onSubmit, loading }: Props) {
                 >
                   <option value="sqlserver">SQL Server</option>
                   <option value="oracle">Oracle</option>
+                  <option value="postgresql">PostgreSQL</option>
+                  <option value="mongodb">MongoDB</option>
                 </select>
               </div>
 

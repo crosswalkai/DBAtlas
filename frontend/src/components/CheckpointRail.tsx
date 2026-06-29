@@ -12,11 +12,13 @@ interface Props {
   stepsSkipped: string[];
   currentIteration: number;
   maxSteps?: number;
+  isPendingApproval?: boolean;
 }
 
 export function CheckpointRail({
   nodes, playbookId, playbookTitle, dbms, mode,
   stepsSkipped, currentIteration, maxSteps = 5,
+  isPendingApproval = false,
 }: Props) {
   const complete = nodes.filter(n => n.state === 'complete').length;
   const progressPct = maxSteps > 0 ? Math.min((complete / maxSteps) * 100, 100) : 0;
@@ -77,7 +79,7 @@ export function CheckpointRail({
       {/* Nodes */}
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: 8 }}>
         {nodes.map((node, i) => (
-          <NodeRow key={node.step_id} node={node} isLast={i === nodes.length - 1} />
+          <NodeRow key={node.step_id} node={node} isLast={i === nodes.length - 1} isPendingApproval={isPendingApproval} />
         ))}
 
         {/* Placeholder nodes for remaining steps */}
@@ -109,7 +111,7 @@ export function CheckpointRail({
   );
 }
 
-function NodeRow({ node, isLast }: { node: CheckpointNode; isLast: boolean }) {
+function NodeRow({ node, isLast, isPendingApproval }: { node: CheckpointNode; isLast: boolean; isPendingApproval: boolean }) {
   const isActive = node.state === 'active';
   const isDone = node.state === 'complete';
 
@@ -126,7 +128,7 @@ function NodeRow({ node, isLast }: { node: CheckpointNode; isLast: boolean }) {
       {/* Circle */}
       <div style={{ flexShrink: 0, zIndex: 1 }}>
         <div
-          className={isActive ? 'node-pulse' : ''}
+          className={isActive && isPendingApproval ? 'node-pulse' : ''}
           style={{
             width: 18, height: 18, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

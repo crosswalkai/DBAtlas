@@ -21,6 +21,7 @@ interface Props {
   currentStep: string | null;
   stepsExecuted: string[];
   stepsSkipped: string[];
+  isPendingApproval?: boolean;
 }
 
 export function PlaybookGraph({
@@ -28,6 +29,7 @@ export function PlaybookGraph({
   currentStep,
   stepsExecuted,
   stepsSkipped,
+  isPendingApproval = false,
 }: Props) {
   const [playbook, setPlaybook] = useState<PlaybookData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -130,7 +132,7 @@ export function PlaybookGraph({
             <React.Fragment key={stepId}>
               {/* Node Card */}
               <div
-                className={isActive ? 'node-pulse' : ''}
+                className={isActive && isPendingApproval ? 'node-pulse' : ''}
                 style={{
                   padding: '8px 12px',
                   background: 'var(--surface-0)',
@@ -157,7 +159,7 @@ export function PlaybookGraph({
                   {isComplete ? (
                     <span style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: 12, lineHeight: 1 }}>✓</span>
                   ) : isActive ? (
-                    <div className="node-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)' }} />
+                    <div className={isPendingApproval ? 'node-pulse' : ''} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)' }} />
                   ) : (
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-faint)' }} />
                   )}
