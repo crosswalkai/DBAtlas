@@ -396,6 +396,7 @@ When the DBA redirects or switches, the AI receives the override context at the 
 | --- | --- | --- | --- | --- |
 | View | Description |
 | Diagnostic Input Form | Server, ticket, question, and mode toggle |
+| Demo Assistant | Collapsible side-panel for selecting pre-configured database scenarios |
 | Auto Mode Progress | Live progress indicator updated via SSE |
 | Checkpoint Approval Panel | Interactive Mode control surface at each checkpoint |
 | Checkpoint Rail | Vertical timeline of steps with status and timing |
@@ -418,6 +419,8 @@ A left sidebar holds Diagnostic and History navigation and a clear indicator tha
 A Help panel explains every input field; results, analysis, and logs support copy-to-clipboard.
 
 Keyboard shortcut (Enter) approves a checkpoint in Interactive Mode for fast triage.
+
+A collapsible Demo Assistant panel on the homepage allows instant loading of demo scenarios for SQL Server and Oracle to facilitate rapid testing and product demonstration without referring to external documentation.
 
 ## 10.3 Branding
 
@@ -501,7 +504,7 @@ The full-stack application is the production path, deployable to GCP Cloud Run. 
 
 Checkpoint loop with Auto and Interactive modes, Interactive as default.
 
-Thirteen playbooks across four platforms; 46 diagnostic data files.
+Thirteen playbooks across four platforms; 51 diagnostic data files.
 
 Five SQL Server demo scenarios validated end to end.
 
