@@ -307,10 +307,9 @@ export function InputForm({ onSubmit, loading }: Props) {
       {/* Demo Assistant Side Panel */}
       <div style={{
         width: '100%', maxWidth: 400,
-        alignSelf: 'flex-start',
+        alignSelf: 'center',
         display: 'flex',
         flexDirection: 'column',
-        marginTop: 90, // align nicely with the form card
       }}>
         {/* Toggle Button */}
         <button
