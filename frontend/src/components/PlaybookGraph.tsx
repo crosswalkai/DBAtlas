@@ -22,6 +22,7 @@ interface Props {
   stepsExecuted: string[];
   stepsSkipped: string[];
   isPendingApproval?: boolean;
+  phase?: string;
 }
 
 export function PlaybookGraph({
@@ -30,6 +31,7 @@ export function PlaybookGraph({
   stepsExecuted,
   stepsSkipped,
   isPendingApproval = false,
+  phase = 'idle',
 }: Props) {
   const [playbook, setPlaybook] = useState<PlaybookData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,8 +67,8 @@ export function PlaybookGraph({
 
   if (!playbook) return null;
 
-  // Traverse the steps starting at the entry_step to order them logically
-  const orderedStepIds: string[] = [];
+  // Traverse the steps starting at the entry_step to order them logically (static fallback order)
+  const staticOrder: string[] = [];
   const visited = new Set<string>();
   const queue = [playbook.entry_step];
 
@@ -74,7 +76,7 @@ export function PlaybookGraph({
     const curr = queue.shift()!;
     if (visited.has(curr)) continue;
     visited.add(curr);
-    orderedStepIds.push(curr);
+    staticOrder.push(curr);
 
     const step = playbook.steps[curr];
     if (step && step.typical_next) {
@@ -85,6 +87,35 @@ export function PlaybookGraph({
       }
     }
   }
+
+  // Dynamic ordering logic to rearrange step nodes based on DBA redirection
+  const orderedStepIds: string[] = [];
+
+  // 1. Append executed steps in order of actual execution
+  stepsExecuted.forEach(stepId => {
+    if (playbook.steps[stepId]) {
+      orderedStepIds.push(stepId);
+    }
+  });
+
+  // 2. Append current active step if not already executed
+  if (currentStep && playbook.steps[currentStep] && !orderedStepIds.includes(currentStep)) {
+    orderedStepIds.push(currentStep);
+  }
+
+  // 3. Append remaining steps from the static logical flow (excluding executed, current, and skipped)
+  staticOrder.forEach(stepId => {
+    if (!orderedStepIds.includes(stepId) && !stepsSkipped.includes(stepId)) {
+      orderedStepIds.push(stepId);
+    }
+  });
+
+  // 4. Append skipped steps at the end of the map
+  staticOrder.forEach(stepId => {
+    if (stepsSkipped.includes(stepId) && !orderedStepIds.includes(stepId)) {
+      orderedStepIds.push(stepId);
+    }
+  });
 
   return (
     <div style={{
@@ -123,7 +154,11 @@ export function PlaybookGraph({
         {orderedStepIds.map((stepId, idx) => {
           const step = playbook.steps[stepId];
           const isComplete = stepsExecuted.includes(stepId);
-          const isActive = currentStep === stepId;
+          const isSessionComplete = phase === 'complete';
+          const lastExecutedStep = stepsExecuted[stepsExecuted.length - 1];
+          const isLastFinished = isComplete && lastExecutedStep === stepId && isSessionComplete;
+
+          const isActive = currentStep === stepId && !isSessionComplete;
           const isSkipped = stepsSkipped.includes(stepId);
 
           if (!step) return null;
@@ -136,9 +171,11 @@ export function PlaybookGraph({
                 style={{
                   padding: '8px 12px',
                   background: 'var(--surface-0)',
-                  border: '1.5px solid',
+                  border: isLastFinished ? '3px solid' : '1.5px solid',
                   borderColor: isActive
                     ? 'var(--accent)'
+                    : isLastFinished
+                    ? 'var(--success)'
                     : isComplete
                     ? 'var(--success-border)'
                     : isSkipped

@@ -12,6 +12,61 @@ interface Props {
   mode: string;
 }
 
+function CopySmallButton({ text }: { text: string }) {
+  const [copied, setCopied] = React.useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Copy to clipboard"
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        fontSize: 10, color: copied ? 'var(--success)' : 'var(--text-faint)',
+        padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 2,
+        transition: 'color 0.15s',
+        outline: 'none',
+      }}
+    >
+      <span>{copied ? '✓' : '📋'}</span>
+      <span>{copied ? 'Copied' : 'Copy'}</span>
+    </button>
+  );
+}
+
+function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?: string }) {
+  const [copied, setCopied] = React.useState(false);
+  const copyAll = () => {
+    const text = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      type="button"
+      onClick={copyAll}
+      style={{
+        background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer',
+        fontSize: 11, fontWeight: 600, color: copied ? 'var(--success)' : 'var(--accent)',
+        display: 'flex', alignItems: 'center', gap: 4,
+        padding: '4px 8px', borderRadius: 'var(--radius-sm)',
+        transition: 'all 0.15s',
+        outline: 'none',
+      }}
+    >
+      <span>{copied ? '✓' : '📋'}</span>
+      <span>{copied ? 'Copied!' : label}</span>
+    </button>
+  );
+}
+
 export function DiagnosticReport({
   analysis, checkpointLog, serverName, ticketNumber, playbookId, mode,
 }: Props) {
@@ -49,7 +104,10 @@ export function DiagnosticReport({
           </div>
 
           {/* Key findings */}
-          <SectionLabel>Key findings</SectionLabel>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <SectionLabel>Key findings</SectionLabel>
+            <CopyAllButton texts={analysis.key_findings} label="Copy All Findings" />
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
             {analysis.key_findings.map((finding, i) => (
               <div key={i} style={{
@@ -59,8 +117,11 @@ export function DiagnosticReport({
                 borderLeft: '2px solid var(--accent)',
                 borderRadius: 'var(--radius)',
               }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3 }}>
-                  Finding {i + 1}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    Finding {i + 1}
+                  </div>
+                  <CopySmallButton text={finding} />
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
                   {finding}
@@ -70,23 +131,32 @@ export function DiagnosticReport({
           </div>
 
           {/* Recommended actions */}
-          <SectionLabel>Recommended actions</SectionLabel>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <SectionLabel>Recommended actions</SectionLabel>
+            <CopyAllButton texts={analysis.recommended_actions} label="Copy All Actions" />
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
             {analysis.recommended_actions.map((action, i) => (
               <div key={i} style={{
                 display: 'flex', gap: 10, padding: '8px 12px',
                 background: 'var(--surface-2)', border: '1px solid var(--border)',
                 borderRadius: 'var(--radius)', alignItems: 'flex-start',
+                justifyContent: 'space-between',
               }}>
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
-                  color: 'var(--accent)', width: 18, flexShrink: 0, marginTop: 1,
-                }}>
-                  {i + 1}.
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  {action}
-                </span>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+                    color: 'var(--accent)', width: 18, flexShrink: 0, marginTop: 1,
+                  }}>
+                    {i + 1}.
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                    {action}
+                  </span>
+                </div>
+                <div style={{ marginLeft: 8 }}>
+                  <CopySmallButton text={`${i + 1}. ${action}`} />
+                </div>
               </div>
             ))}
           </div>
@@ -119,6 +189,13 @@ export function DiagnosticReport({
           </button>
           {showCheckpointLog && (
             <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+                <CopyAllButton texts={checkpointLog.map(entry => 
+                  `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
+                  `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
+                  (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
+                )} label="Copy All Log Entries" />
+              </div>
               {checkpointLog.map((entry, i) => (
                 <div key={i} style={{
                   padding: '10px 12px',
@@ -137,9 +214,16 @@ export function DiagnosticReport({
                         {entry.row_count} rows
                       </span>
                     </div>
-                    {entry.dba_decision && (
-                      <DbaDecisionBadge decision={entry.dba_decision} />
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {entry.dba_decision && (
+                        <DbaDecisionBadge decision={entry.dba_decision} />
+                      )}
+                      <CopySmallButton text={
+                        `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
+                        `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
+                        (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
+                      } />
+                    </div>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     {entry.interactive_summary || entry.claude_assessment}

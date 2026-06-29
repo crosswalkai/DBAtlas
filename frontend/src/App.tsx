@@ -578,6 +578,7 @@ export default function App() {
                       stepsExecuted={state.stepsExecuted}
                       stepsSkipped={state.stepsSkipped}
                       isPendingApproval={phase === 'pending_approval'}
+                      phase={phase}
                     />
 
                     <div style={{ flex: 1, overflowY: 'auto' }}>
