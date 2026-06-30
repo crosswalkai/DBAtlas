@@ -80,6 +80,12 @@ if os.path.exists(dist_path):
         # Exclude API endpoints from routing fallback
         if fallback_path.startswith("api/"):
             return None
+            
+        # Check if the file exists directly in the dist directory (e.g. logos, favicons from public/)
+        file_path = os.path.join(dist_path, fallback_path)
+        if fallback_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
         return FileResponse(os.path.join(dist_path, "index.html"))
 
 if __name__ == "__main__":
