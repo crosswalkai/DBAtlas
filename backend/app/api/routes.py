@@ -388,32 +388,56 @@ async def chat_endpoint(request: ChatRequest):
     """
     import os
     try:
-        # Robust absolute path resolution for SPECIFICATION.md
+        # Robust absolute path resolution for SPECIFICATION.md and AGENTS.md
         spec_path = None
-        candidates = [
+        agents_path = None
+        
+        spec_candidates = [
             os.path.join(os.getcwd(), "SPECIFICATION.md"),
             os.path.join(os.path.dirname(os.getcwd()), "SPECIFICATION.md"),
             os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "SPECIFICATION.md"),
             os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "SPECIFICATION.md"),
         ]
-        for path in candidates:
+        for path in spec_candidates:
             if os.path.exists(path):
                 spec_path = path
                 break
                 
-        if not spec_path:
-            spec_path = "SPECIFICATION.md" # Fallback to default
-        
-        try:
-            with open(spec_path, "r", encoding="utf-8") as f:
-                spec_content = f.read()
-        except FileNotFoundError:
-            logger.warning(f"SPECIFICATION.md not found at {spec_path}. Using fallback content.")
-            spec_content = "DBAtlas is an AI-powered diagnostic tool for Database Administrators. It uses Claude to route diagnostic steps."
+        agents_candidates = [
+            os.path.join(os.getcwd(), "AGENTS.md"),
+            os.path.join(os.path.dirname(os.getcwd()), "AGENTS.md"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "AGENTS.md"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "AGENTS.md"),
+        ]
+        for path in agents_candidates:
+            if os.path.exists(path):
+                agents_path = path
+                break
+                
+        spec_content = ""
+        if spec_path:
+            try:
+                with open(spec_path, "r", encoding="utf-8") as f:
+                    spec_content = f.read()
+            except Exception as e:
+                logger.warning(f"Error reading specification: {e}")
+                
+        agents_content = ""
+        if agents_path:
+            try:
+                with open(agents_path, "r", encoding="utf-8") as f:
+                    agents_content = f.read()
+            except Exception as e:
+                logger.warning(f"Error reading agents rules: {e}")
+
+        # Combine both specification and agents project rules as the knowledge base
+        knowledge_base = f"{agents_content}\n\n{spec_content}"
+        if not knowledge_base.strip():
+            knowledge_base = "DBAtlas is an AI-powered diagnostic tool for Database Administrators. It uses Claude to route diagnostic steps."
 
         claude = ClaudeClient()
         anthropic_messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
-        reply = await claude.chat(messages=anthropic_messages, specification_content=spec_content)
+        reply = await claude.chat(messages=anthropic_messages, specification_content=knowledge_base)
         return ChatResponse(response=reply)
     except Exception as e:
         logger.exception(f"Chat error: {e}")
