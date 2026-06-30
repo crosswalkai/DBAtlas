@@ -14,6 +14,7 @@ WORKDIR /app
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
+COPY SPECIFICATION.md AGENTS.md ./
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 EXPOSE 8080

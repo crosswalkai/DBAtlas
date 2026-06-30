@@ -389,9 +389,20 @@ async def chat_endpoint(request: ChatRequest):
     import os
     try:
         # Robust absolute path resolution for SPECIFICATION.md
-        current_file = os.path.abspath(__file__)
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file))))
-        spec_path = os.path.join(root_dir, "SPECIFICATION.md")
+        spec_path = None
+        candidates = [
+            os.path.join(os.getcwd(), "SPECIFICATION.md"),
+            os.path.join(os.path.dirname(os.getcwd()), "SPECIFICATION.md"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "SPECIFICATION.md"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "SPECIFICATION.md"),
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                spec_path = path
+                break
+                
+        if not spec_path:
+            spec_path = "SPECIFICATION.md" # Fallback to default
         
         try:
             with open(spec_path, "r", encoding="utf-8") as f:
