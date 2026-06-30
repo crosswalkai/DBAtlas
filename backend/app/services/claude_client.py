@@ -192,7 +192,7 @@ No preamble, no markdown, no additional text."""
 
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=800,
+            max_tokens=2000,
             messages=[{"role": "user", "content": prompt}],
         )
 
@@ -299,12 +299,32 @@ No preamble, no markdown fences, no additional text."""
 
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=1000,
+            max_tokens=2000,
             messages=[{"role": "user", "content": prompt}],
         )
 
         data = self._parse_json(response.content[0].text, "final analysis")
         return FinalAnalysis(**data)
+
+    async def chat(self, messages: list[dict], specification_content: str) -> str:
+        """
+        Provides knowledge base Q&A based solely on the specification document.
+        """
+        system_prompt = f"""You are a helpful, expert knowledge base assistant for DBAtlas.
+Answer the user's questions strictly using the information from the DBAtlas Specification document provided below.
+Do not invent features or workflows that are not in this document. Keep your answers clear, concise, and structured.
+You may use markdown formatting.
+
+DBATLAS SPECIFICATION:
+{specification_content}
+"""
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=1000,
+            system=system_prompt,
+            messages=messages,
+        )
+        return response.content[0].text
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
