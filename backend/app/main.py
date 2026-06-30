@@ -62,6 +62,26 @@ app.add_middleware(
 
 app.include_router(router, prefix="/api/v1")
 
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Serve frontend static files in production
+dist_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+
+if os.path.exists(dist_path):
+    logger.info(f"Serving static frontend files from: {dist_path}")
+    # Mount assets subfolder directly
+    app.mount("/assets", StaticFiles(directory=os.path.join(dist_path, "assets")), name="static-assets")
+    
+    # Catch-all route to serve index.html for any frontend client-side routes (SPA)
+    @app.get("/{fallback_path:path}")
+    async def index_fallback(fallback_path: str):
+        # Exclude API endpoints from routing fallback
+        if fallback_path.startswith("api/"):
+            return None
+        return FileResponse(os.path.join(dist_path, "index.html"))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
