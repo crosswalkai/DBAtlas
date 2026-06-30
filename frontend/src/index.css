@@ -22,6 +22,7 @@
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
   --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  --mode-active-bg: #FFF0E6; --mode-active-text: #C2540A; --mode-active-border: #F9C4A0;
 }
 
 html, body, #root { height: 100%; background: var(--surface-0); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -95,6 +96,9 @@ html, body, #root { height: 100%; background: var(--surface-0); color: var(--tex
   --mongo-bg: #022c22;
   --mongo-text: #10B981;
   --mongo-border: #064E3B;
+  --mode-active-bg: #451a03;
+  --mode-active-text: #f97316;
+  --mode-active-border: #78350f;
 }
 
 /* Smooth Transitions for Theme Toggling */

@@ -2,8 +2,10 @@
 import React from 'react';
 import { SeverityBadge, SectionLabel, Card, DbaDecisionBadge, Divider } from './ui';
 import type { FinalAnalysis, CheckpointLogEntry } from '../types';
+import { shareReport } from '../api/client';
 
 interface Props {
+  sessionId: string;
   analysis: FinalAnalysis;
   checkpointLog: CheckpointLogEntry[];
   serverName: string;
@@ -69,9 +71,52 @@ function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?:
 }
 
 export function DiagnosticReport({
+  sessionId,
   analysis, checkpointLog, serverName, ticketNumber, playbookId, mode,
 }: Props) {
   const [showCheckpointLog, setShowCheckpointLog] = React.useState(false);
+  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [recipient, setRecipient] = React.useState('');
+  const [message, setMessage] = React.useState('');
+  const [sharing, setSharing] = React.useState(false);
+  const [shareSuccess, setShareSuccess] = React.useState('');
+  const [shareError, setShareError] = React.useState('');
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowShareModal(false);
+        setShareError('');
+        setShareSuccess('');
+      }
+    };
+    if (showShareModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showShareModal]);
+
+  const handleShareSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipient) return;
+    setSharing(true);
+    setShareSuccess('');
+    setShareError('');
+    try {
+      const res = await shareReport(sessionId, recipient, message);
+      setShareSuccess(res.message || 'Report shared successfully!');
+      setRecipient('');
+      setMessage('');
+      setTimeout(() => {
+        setShowShareModal(false);
+        setShareSuccess('');
+      }, 2000);
+    } catch (err: any) {
+      setShareError(err.response?.data?.detail || 'Failed to share report. Please try again.');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <div className="fade-in" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -87,7 +132,25 @@ export function DiagnosticReport({
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {playbookId || 'diagnostic'} · {mode} mode
           </span>
-          <SeverityBadge severity={analysis.severity} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setShowShareModal(true)}
+              style={{
+                fontSize: 11, padding: '3px 8px',
+                background: 'var(--surface-1)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: 4,
+                outline: 'none',
+              }}
+            >
+              <span>✉</span>
+              <span>Share Report</span>
+            </button>
+            <SeverityBadge severity={analysis.severity} />
+          </div>
         </div>
 
         <div style={{ padding: '16px' }}>
@@ -239,6 +302,134 @@ export function DiagnosticReport({
             </div>
           )}
         </Card>
+      )}
+
+      {/* Share Report Modal */}
+      {showShareModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.2s ease-out',
+        }}>
+          <div style={{
+            background: 'var(--surface-1)', border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)',
+            width: '90%', maxWidth: 450, overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '14px 18px', background: 'var(--surface-2)',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>
+                ✉ Share Diagnostic Report
+              </span>
+              <button
+                onClick={() => {
+                  setShowShareModal(false);
+                  setShareError('');
+                  setShareSuccess('');
+                }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 14, color: 'var(--text-muted)', fontWeight: 'bold',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form body */}
+            <form onSubmit={handleShareSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <SectionLabel>Recipient Email</SectionLabel>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. triagedev@company.com"
+                  value={recipient}
+                  onChange={e => setRecipient(e.target.value)}
+                  style={{
+                    width: '100%', padding: '8px 12px', background: 'var(--surface-0)',
+                    border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+                    color: 'var(--text-primary)', fontSize: 13, fontFamily: 'var(--font-sans)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <SectionLabel>Custom Message / Triage Notes (Optional)</SectionLabel>
+                <textarea
+                  placeholder="Add any additional notes about this diagnostic report..."
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  rows={4}
+                  style={{
+                    width: '100%', padding: '8px 12px', background: 'var(--surface-0)',
+                    border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+                    color: 'var(--text-primary)', fontSize: 13, fontFamily: 'var(--font-sans)',
+                    outline: 'none', resize: 'none', lineHeight: 1.5,
+                  }}
+                />
+              </div>
+
+              {shareSuccess && (
+                <div style={{
+                  padding: '8px 12px', background: 'var(--success-light)',
+                  border: '1px solid var(--success-border)', borderRadius: 'var(--radius)',
+                  color: 'var(--success)', fontSize: 12, fontWeight: 500,
+                }}>
+                  ✓ {shareSuccess}
+                </div>
+              )}
+
+              {shareError && (
+                <div style={{
+                  padding: '8px 12px', background: 'var(--danger-light)',
+                  border: '1px solid var(--danger-border)', borderRadius: 'var(--radius)',
+                  color: 'var(--danger)', fontSize: 12, fontWeight: 500,
+                }}>
+                  ⚠ {shareError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareModal(false);
+                    setShareError('');
+                    setShareSuccess('');
+                  }}
+                  style={{
+                    fontSize: 12, padding: '6px 14px', borderRadius: 'var(--radius)',
+                    background: 'var(--surface-2)', border: '1px solid var(--border)',
+                    color: 'var(--text-primary)', cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                    fontWeight: 500,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={sharing || !!shareSuccess}
+                  style={{
+                    fontSize: 12, padding: '6px 14px', borderRadius: 'var(--radius)',
+                    background: 'var(--accent)', border: '1px solid var(--accent)',
+                    color: '#FFF', cursor: sharing || shareSuccess ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font-sans)', fontWeight: 500,
+                    opacity: sharing || shareSuccess ? 0.7 : 1,
+                  }}
+                >
+                  {sharing ? 'Sending...' : 'Send Email'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

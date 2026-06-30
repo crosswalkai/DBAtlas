@@ -86,6 +86,7 @@ export function InputForm({ onSubmit, loading }: Props) {
   const [showAssistant, setShowAssistant] = useState(false);
   const [assistantDbms, setAssistantDbms] = useState<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb'>('sqlserver');
   const [selectedScenario, setSelectedScenario] = useState<number | ''>('');
+  const [isHovered, setIsHovered] = useState(false);
 
   const validateTicket = (val: string) => {
     if (!/^(INC|CHG)\d{7}$/.test(val)) {
@@ -282,9 +283,9 @@ export function InputForm({ onSubmit, loading }: Props) {
                         fontSize: 11, fontWeight: 600, padding: '4px 14px',
                         borderRadius: 16, cursor: 'pointer',
                         fontFamily: 'var(--font-sans)',
-                        background: mode === m ? '#FFF0E6' : 'transparent',
-                        color: mode === m ? '#C2540A' : 'var(--text-muted)',
-                        border: mode === m ? '1px solid #F9C4A0' : '1px solid transparent',
+                        background: mode === m ? 'var(--mode-active-bg)' : 'transparent',
+                        color: mode === m ? 'var(--mode-active-text)' : 'var(--text-muted)',
+                        border: mode === m ? '1px solid var(--mode-active-border)' : '1px solid transparent',
                         transition: 'all 0.15s',
                         textTransform: 'capitalize',
                       }}
@@ -300,6 +301,8 @@ export function InputForm({ onSubmit, loading }: Props) {
                 type="submit"
                 loading={loading}
                 disabled={!!ticketError || !serverName || !ticketNumber || !question}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 style={{
                   width: '100%', justifyContent: 'center', padding: '10px',
                   background: '#F3F4F6',
@@ -307,7 +310,7 @@ export function InputForm({ onSubmit, loading }: Props) {
                   borderColor: '#E5E7EB',
                 }}
               >
-                {loading ? 'Starting...' : '▶  Run diagnostic'}
+                {loading ? 'Starting...' : isHovered ? "Let's di(a)g!" : '▶  Run diagnostic'}
               </Button>
 
             </div>
@@ -416,6 +419,17 @@ export function InputForm({ onSubmit, loading }: Props) {
             )}
           </div>
         )}
+      </div>
+
+      {/* Footer links */}
+      <div style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20,
+        marginTop: 40, borderTop: '1px solid var(--border)', padding: '16px 0 0',
+        fontSize: 12,
+      }}>
+        <a href="#about" onClick={(e) => { e.preventDefault(); alert("DBAtlas - DBA Copilot v5.0.0\nDatabase Agentic Troubleshooting Advisor"); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>About</a>
+        <a href="#support" onClick={(e) => { e.preventDefault(); alert("For support, contact support@crosswalk.ai or open a ticket in ServiceNow."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Support</a>
+        <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("DBAtlas complies with your corporate database security guidelines and privacy policies. No credentials or data are stored outside your secure environment."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Privacy</a>
       </div>
     </div>
   );

@@ -402,6 +402,7 @@ When the DBA redirects or switches, the AI receives the override context at the 
 | Checkpoint Rail | Vertical timeline of steps with status and timing |
 | Diagnostic Report | Summary, severity, findings, recommended actions, decision log |
 | Session History | Past sessions with server, ticket, mode, severity, playbook |
+| Landing Page Jokes Widget | Dual-column view on logout displaying professional database jokes |
 
 
 ## 10.2 Interface Conventions
@@ -418,9 +419,11 @@ A left sidebar holds Diagnostic and History navigation and a clear indicator tha
 
 A Help panel explains every input field; results, analysis, and logs support copy-to-clipboard.
 
-Keyboard shortcut (Enter) approves a checkpoint in Interactive Mode for fast triage.
+Keyboard shortcut (Enter) approves a checkpoint in Interactive Mode for fast triage. The Help panel and Share Report modals support instant keyboard dismissal using the Escape key.
 
-A collapsible Demo Assistant panel on the homepage allows instant loading of demo scenarios for SQL Server and Oracle to facilitate rapid testing and product demonstration without referring to external documentation.
+A collapsible Demo Assistant panel on the homepage allows instant loading of demo scenarios for SQL Server and Oracle to facilitate rapid testing and product demonstration without referring to external documentation. The Run button changes dynamically to "Let's dig!" on hover, and the homepage displays centered footer links for About, Support, and Privacy details.
+
+When a user logs out, the landing page uses a split-screen layout with the login card on the left and a database jokes widget on the right, housing 100 professional DBMS-centered jokes. Clicking the next button more than twice triggers an easter egg alert.
 
 ## 10.3 Branding
 
@@ -448,6 +451,7 @@ A collapsible Demo Assistant panel on the homepage allows instant loading of dem
 | GET | /api/v1/playbooks | Lists playbooks, filterable by platform and intent |
 | GET | /api/v1/session/{id} | Returns a stored session log |
 | GET | /api/v1/health | Health check |
+| POST | /api/v1/sessions/{id}/share | Shares the diagnostic report via email |
 
 
 ## 11.2 SSE Event Types

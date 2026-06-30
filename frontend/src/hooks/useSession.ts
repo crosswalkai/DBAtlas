@@ -90,6 +90,7 @@ export function useSession() {
     const { session_id } = await startDiagnose(req);
     updateState({ sessionId: session_id });
 
+    let isCompleteReceived = false;
     const es = openSseStream(session_id);
     esSrcRef.current = es;
 
@@ -163,6 +164,8 @@ export function useSession() {
     });
 
     es.addEventListener('complete', async (e: MessageEvent) => {
+      isCompleteReceived = true;
+      es.close();
       const d = JSON.parse(e.data);
       // Fetch full session to get analysis
       try {
@@ -178,7 +181,6 @@ export function useSession() {
       } catch {
         updateState({ phase: 'complete' });
       }
-      es.close();
     });
 
     es.addEventListener('error', (e: MessageEvent) => {
@@ -195,6 +197,7 @@ export function useSession() {
     });
 
     es.onerror = () => {
+      if (isCompleteReceived) return;
       // EventSource network error — only flag if not already complete
       setState(prev => {
         if (prev.phase === 'complete') return prev;

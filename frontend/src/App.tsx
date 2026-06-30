@@ -7,6 +7,8 @@ import { DiagnosticReport } from './components/DiagnosticReport';
 import { SessionHistory } from './components/SessionHistory';
 import { PlaybookGraph } from './components/PlaybookGraph';
 import { Badge, Spinner, SeverityBadge, Button } from './components/ui';
+import { JOKES } from './utils/jokes';
+import { ChatWidget } from './components/ChatWidget';
 
 type ActiveView = 'diagnose' | 'history';
 
@@ -132,13 +134,275 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Tic-Tac-Toe Waiting Game ──────────────────────────────────────────────────
+const WIN_COMBOS = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+  [0, 4, 8], [2, 4, 6]            // diagonals
+];
+
+function checkWin(board: (string | null)[]) {
+  for (const combo of WIN_COMBOS) {
+    const [a, b, c] = combo;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return board[a];
+    }
+  }
+  if (board.every(cell => cell !== null)) {
+    return 'draw';
+  }
+  return null;
+}
+
+const getAiMove = (board: (string | null)[]): number => {
+  const emptyIndices = board.map((val, idx) => val === null ? idx : null).filter((v): v is number => v !== null);
+  if (emptyIndices.length === 0) return -1;
+
+  const userPieceCount = board.filter(cell => cell === 'user').length;
+
+  // 1. Find winning move for AI
+  for (const idx of emptyIndices) {
+    const testBoard = [...board];
+    testBoard[idx] = 'ai';
+    if (checkWin(testBoard) === 'ai') {
+      if (Math.random() < 0.70) return idx;
+    }
+  }
+
+  // 2. Find block move for AI
+  for (const idx of emptyIndices) {
+    const testBoard = [...board];
+    testBoard[idx] = 'user';
+    if (checkWin(testBoard) === 'user') {
+      if (userPieceCount === 2) {
+        return idx; // Always block the very first opportunity!
+      } else {
+        // Leave the opportunity open for the user to win on their next turn!
+        continue;
+      }
+    }
+  }
+
+  // 3. Prefer center if available
+  if (board[4] === null) {
+    return 4;
+  }
+
+  // 4. Otherwise, random empty cell
+  const randomIdx = Math.floor(Math.random() * emptyIndices.length);
+  return emptyIndices[randomIdx];
+};
+
+function TicTacToeWidget({ disabled = false }: { disabled?: boolean }) {
+  const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
+  const [turn, setTurn] = useState<'user' | 'ai'>('user');
+  const [winner, setWinner] = useState<string | null>(null);
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setTurn('user');
+    setWinner(null);
+  };
+
+  const handleCellClick = (index: number) => {
+    if (board[index] || winner || turn !== 'user') return;
+
+    const newBoard = [...board];
+    newBoard[index] = 'user';
+    setBoard(newBoard);
+
+    const winStatus = checkWin(newBoard);
+    if (winStatus) {
+      setWinner(winStatus);
+      return;
+    }
+
+    setTurn('ai');
+  };
+
+  useEffect(() => {
+    if (turn === 'ai' && !winner) {
+      const timer = setTimeout(() => {
+        const aiMove = getAiMove(board);
+        if (aiMove !== -1) {
+          const newBoard = [...board];
+          newBoard[aiMove] = 'ai';
+          setBoard(newBoard);
+
+          const winStatus = checkWin(newBoard);
+          if (winStatus) {
+            setWinner(winStatus);
+          } else {
+            setTurn('user');
+          }
+        }
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [turn, board, winner]);
+
+  // Cylinder render helper (smaller to fit 14px cell)
+  const renderCylinder = () => (
+    <div style={{
+      width: 9, height: 11,
+      border: '1.2px solid var(--accent)',
+      borderRadius: '50% / 2px',
+      background: 'var(--accent-light)',
+      position: 'relative',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{ position: 'absolute', top: 2, left: 0, right: 0, height: 2, borderBottom: '1px solid var(--accent)', borderRadius: '50% / 1px' }} />
+      <div style={{ position: 'absolute', top: 4, left: 0, right: 0, height: 2, borderBottom: '1px solid var(--accent)', borderRadius: '50% / 1px' }} />
+    </div>
+  );
+
+  return (
+    <div className="fade-in" style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      background: 'var(--surface-2)', padding: '3px 8px',
+      borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+      height: 48, boxSizing: 'border-box',
+      opacity: disabled ? 0.5 : 1,
+      pointerEvents: disabled ? 'none' : 'auto',
+    }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginRight: 2 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Waiting Game
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: winner ? 'var(--accent)' : 'var(--text-secondary)', minWidth: 65 }}>
+          {winner === 'user' && 'You win! 🎉'}
+          {winner === 'ai' && 'AI wins! 🤖'}
+          {winner === 'draw' && 'Draw! 🤝'}
+          {!winner && (turn === 'user' ? 'Your turn...' : 'AI thinking...')}
+        </span>
+      </div>
+
+      {/* Grid Board */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 14px)',
+        gridTemplateRows: 'repeat(3, 14px)',
+        gap: '1px',
+        background: 'var(--border)',
+        padding: '1px',
+        borderRadius: 'var(--radius-sm)',
+      }}>
+        {board.map((cell, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleCellClick(idx)}
+            disabled={!!winner || turn !== 'user'}
+            style={{
+              width: 14, height: 14,
+              background: 'var(--surface-1)',
+              border: 'none',
+              cursor: board[idx] || winner ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 0,
+              outline: 'none',
+            }}
+          >
+            {cell === 'user' && renderCylinder()}
+            {cell === 'ai' && <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>✕</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* Reset */}
+      <button
+        onClick={resetGame}
+        title="Reset Game"
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 12, padding: 2, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', color: 'var(--text-muted)',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+      >
+        🔄
+      </button>
+    </div>
+  );
+}
+
+// ── Jokes widget ─────────────────────────────────────────────────────────────
+function JokesWidget({ dbms }: { dbms: string }) {
+  const filteredJokes = JOKES.filter(j => j.dbms === dbms);
+  const [clickCount, setClickCount] = useState(0);
+  const [jokeIndex, setJokeIndex] = useState(() => Math.floor(Math.random() * (filteredJokes.length || 1)));
+
+  const handleNextJoke = () => {
+    if (clickCount >= 2) {
+      alert("Sorry but Pablo says you need to get back to work 😏");
+      return;
+    }
+    setClickCount(prev => prev + 1);
+    if (filteredJokes.length > 0) {
+      setJokeIndex(prev => (prev + 1) % filteredJokes.length);
+    }
+  };
+
+  const joke = filteredJokes[jokeIndex] || filteredJokes[0];
+
+  return (
+    <div className="fade-in" style={{
+      width: 360, background: 'var(--surface-1)',
+      border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
+      boxShadow: 'var(--shadow-md)', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{
+        padding: '20px 24px 16px', textAlign: 'center',
+        borderBottom: '1px solid var(--border)', background: 'var(--surface-2)',
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
+          Did you know...
+        </div>
+      </div>
+
+      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 180, justifyContent: 'space-between' }}>
+        {joke ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6, fontStyle: 'italic' }}>
+              "{joke.text}"
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            No database jokes available for this platform.
+          </div>
+        )}
+
+        <button
+          onClick={handleNextJoke}
+          style={{
+            width: '100%', padding: '9px',
+            background: 'transparent', border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)', cursor: 'pointer',
+            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
+            fontSize: 12, fontWeight: 600, transition: 'all 0.15s',
+            outline: 'none',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
+        >
+          One more
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Login screen ──────────────────────────────────────────────────────────────
-function LoginScreen({ onCancel }: { onCancel: () => void }) {
+function LoginScreen({ onCancel, dbms }: { onCancel: () => void; dbms: string }) {
   return (
     <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column',
+      height: '100vh', display: 'flex', flexDirection: 'row',
       alignItems: 'center', justifyContent: 'center',
-      background: 'var(--surface-0)',
+      background: 'var(--surface-0)', gap: 40, padding: '0 40px',
+      flexWrap: 'wrap',
     }}>
       <div className="fade-in" style={{
         width: 360, background: 'var(--surface-1)',
@@ -150,10 +414,10 @@ function LoginScreen({ onCancel }: { onCancel: () => void }) {
           padding: '20px 24px 16px', textAlign: 'center',
           borderBottom: '1px solid var(--border)', background: 'var(--surface-2)',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
             <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 40 }} />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-faint)', letterSpacing: '0.04em' }}>
+          <div style={{ fontSize: 8, color: 'var(--text-faint)', letterSpacing: '0.04em' }}>
             <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>D</span>ata<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>b</span>ase <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>gentic <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>T</span>roub<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>l</span>eshooting <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>dvi<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>s</span>or
           </div>
         </div>
@@ -226,16 +490,20 @@ function LoginScreen({ onCancel }: { onCancel: () => void }) {
           </div>
         </div>
       </div>
+
+      {/* Right column: Jokes widget */}
+      <JokesWidget dbms={dbms} />
     </div>
   );
 }
 
 // ── Left sidebar nav ──────────────────────────────────────────────────────────
 function SideNav({
-  activeView, setActiveView,
+  activeView, setActiveView, onToggleChat
 }: {
   activeView: ActiveView;
   setActiveView: (v: ActiveView) => void;
+  onToggleChat: () => void;
 }) {
   const items: { id: ActiveView; icon: string; label: string }[] = [
     { id: 'diagnose', icon: '⚕', label: 'Diagnostic' },
@@ -275,6 +543,26 @@ function SideNav({
         );
       })}
 
+      <button
+        onClick={onToggleChat}
+        title="Knowledge Base Chat"
+        style={{
+          width: 40, height: 40, borderRadius: 'var(--radius)',
+          border: '1px solid var(--border)', cursor: 'pointer', display: 'flex',
+          flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 2, background: 'var(--surface-2)',
+          color: 'var(--text-muted)', transition: 'all 0.15s',
+          marginTop: 10,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.color = 'var(--accent)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+      >
+        <span style={{ fontSize: 16, lineHeight: 1 }}>💬</span>
+        <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
+          Chat
+        </span>
+      </button>
+
       <div style={{ flex: 1 }} />
 
       {/* Mock data indicator */}
@@ -307,6 +595,7 @@ export default function App() {
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => 
     (localStorage.getItem('theme') as any) || 'light'
@@ -316,6 +605,16 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowHelp(false);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
@@ -365,7 +664,7 @@ export default function App() {
   }, [reset, resetElapsed]);
 
   if (showLogin) {
-    return <LoginScreen onCancel={() => setShowLogin(false)} />;
+    return <LoginScreen onCancel={() => setShowLogin(false)} dbms={state.dbms || 'oracle'} />;
   }
 
   return (
@@ -373,7 +672,7 @@ export default function App() {
 
       {/* Topbar */}
       <header style={{
-        height: 48, display: 'flex', alignItems: 'center', gap: 10,
+        height: 58, display: 'flex', alignItems: 'center', gap: 10,
         padding: '0 16px', background: 'var(--surface-1)',
         borderBottom: '1px solid var(--border)', flexShrink: 0,
         boxShadow: 'var(--shadow-sm)',
@@ -400,62 +699,12 @@ export default function App() {
           </>
         )}
 
-        {/* Session context pills */}
+        {/* Tic-Tac-Toe Wait Game (Repurposed Space) */}
         {hasSession && activeView === 'diagnose' && (
-          <>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '3px 9px', background: 'var(--surface-2)',
-              border: '1px solid var(--border)', borderRadius: 'var(--radius)',
-              fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-primary)',
-            }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)' }} />
-              {state.serverName}
-            </div>
-            {state.dbms && <Badge variant="dbms" dbms={state.dbms} size="sm">{state.dbms}</Badge>}
-            <div style={{
-              padding: '3px 9px', background: 'var(--surface-2)',
-              border: '1px solid var(--border)', borderRadius: 'var(--radius)',
-              fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)',
-            }}>
-              {state.ticketNumber}
-            </div>
-            <Badge variant="mode" mode={state.mode} size="sm">
-              {state.mode === 'interactive' ? '● Interactive' : '▶ Auto'}
-            </Badge>
-            {isRunning && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted)', fontSize: 11 }}>
-                <Spinner size={11} />
-                <span>{phaseLabel(phase)}</span>
-                {elapsed > 0 && (
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 10,
-                    background: 'var(--surface-2)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)', padding: '1px 5px',
-                    color: 'var(--text-muted)',
-                  }}>
-                    {formatElapsed(elapsed)}
-                  </span>
-                )}
-              </div>
-            )}
-            {isComplete && state.analysis && <SeverityBadge severity={state.analysis.severity} />}
-          </>
+          <TicTacToeWidget disabled={phase === 'pending_approval'} />
         )}
 
         <div style={{ flex: 1 }} />
-
-        {/* New session */}
-        {hasSession && (
-          <button onClick={handleReset} style={{
-            fontSize: 12, fontWeight: 500, padding: '5px 12px',
-            background: 'transparent', border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)', cursor: 'pointer',
-            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
-          }}>
-            + New session
-          </button>
-        )}
 
         <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
 
@@ -464,22 +713,55 @@ export default function App() {
           onClick={toggleTheme}
           title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 28, height: 28, borderRadius: 'var(--radius)',
-            border: '1px solid var(--border)', background: 'transparent',
-            cursor: 'pointer', fontSize: 13, transition: 'all 0.15s',
-            color: 'var(--text-muted)',
+            display: 'flex', alignItems: 'center', position: 'relative',
+            width: 52, height: 26, borderRadius: 13, padding: 2,
+            border: '1px solid var(--border)', background: 'var(--surface-2)',
+            cursor: 'pointer', transition: 'all 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
         >
-          {theme === 'light' ? '🌙' : '☀️'}
+          <div style={{
+            position: 'absolute',
+            left: theme === 'light' ? 2 : 26,
+            width: 22, height: 20, borderRadius: 10,
+            background: 'var(--surface-0)', boxShadow: 'var(--shadow-sm)',
+            transition: 'left 0.2s ease',
+          }} />
+          <div style={{ zIndex: 1, display: 'flex', width: '100%', justifyContent: 'space-between', padding: '0 4px', alignItems: 'center' }}>
+            {/* Sun SVG */}
+            <svg 
+              viewBox="0 0 24 24" 
+              width="12" 
+              height="12" 
+              stroke="#D97706" 
+              fill="#F59E0B" 
+              strokeWidth="2"
+              style={{ opacity: theme === 'light' ? 1 : 0.4, transition: 'opacity 0.15s' }}
+            >
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            {/* Moon SVG */}
+            <svg 
+              viewBox="0 0 24 24" 
+              width="12" 
+              height="12" 
+              stroke="#4338CA" 
+              fill="#6366F1" 
+              strokeWidth="2"
+              style={{ opacity: theme === 'dark' ? 1 : 0.4, transition: 'opacity 0.15s' }}
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </div>
         </button>
 
-        {/* Help */}
+        {/* Quick start */}
         <button
           onClick={() => setShowHelp(v => !v)}
-          title="Help — how to use DBAtlas"
+          title="Quick start — how to use DBAtlas"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
             fontSize: 12, fontWeight: 500, padding: '5px 10px',
@@ -490,8 +772,8 @@ export default function App() {
             fontFamily: 'var(--font-sans)', transition: 'all 0.15s',
           }}
         >
-          <span style={{ fontSize: 14 }}>❓</span>
-          Help
+          <span style={{ fontSize: 14 }}>⚡</span>
+          Quick start
         </button>
 
         {/* Log out */}
@@ -519,10 +801,13 @@ export default function App() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* Left sidebar nav */}
-        <SideNav activeView={activeView} setActiveView={setActiveView} />
+        <SideNav activeView={activeView} setActiveView={setActiveView} onToggleChat={() => setShowChat(v => !v)} />
 
         {/* Main content area */}
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+
+          {/* Chat Widget */}
+          {showChat && <ChatWidget onClose={() => setShowChat(false)} />}
 
           {/* History view */}
           {activeView === 'history' && (
@@ -542,9 +827,84 @@ export default function App() {
 
                     {/* Question bar */}
                     <div style={{
-                      padding: '10px 20px', background: 'var(--surface-1)',
+                      padding: '12px 20px', background: 'var(--surface-1)',
                       borderBottom: '1px solid var(--border)', flexShrink: 0,
                     }}>
+                      {/* Session context indicators (moved from topbar) */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        marginBottom: 12,
+                        borderBottom: '1px solid var(--border)',
+                        paddingBottom: 10,
+                        flexWrap: 'wrap',
+                      }}>
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          padding: '3px 9px', background: 'var(--surface-2)',
+                          border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+                          fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-primary)',
+                        }}>
+                          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)' }} />
+                          {state.serverName}
+                        </div>
+                        {state.dbms && <Badge variant="dbms" dbms={state.dbms} size="sm">{state.dbms}</Badge>}
+                        <div style={{
+                          padding: '3px 9px', background: 'var(--surface-2)',
+                          border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+                          fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)',
+                        }}>
+                          {state.ticketNumber}
+                        </div>
+                        <Badge variant="mode" mode={state.mode} size="sm">
+                          {state.mode === 'interactive' ? '● Interactive' : '▶ Auto'}
+                        </Badge>
+                        {isRunning && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted)', fontSize: 11 }}>
+                            <Spinner size={11} />
+                            <span>{phaseLabel(phase)}</span>
+                            {elapsed > 0 && (
+                              <span style={{
+                                fontFamily: 'var(--font-mono)', fontSize: 10,
+                                background: 'var(--surface-2)', border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)', padding: '1px 5px',
+                                color: 'var(--text-muted)',
+                              }}>
+                                {formatElapsed(elapsed)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isComplete && state.analysis && <SeverityBadge severity={state.analysis.severity} />}
+
+                        <div style={{ flex: 1 }} />
+
+                        {/* New session */}
+                        <button
+                          onClick={handleReset}
+                          style={{
+                            fontSize: 11, fontWeight: 600, padding: '4px 12px',
+                            background: 'var(--surface-2)', border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius)', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.borderColor = 'var(--accent-border)';
+                            e.currentTarget.style.background = 'var(--surface-3)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.borderColor = 'var(--border)';
+                            e.currentTarget.style.background = 'var(--surface-2)';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                        >
+                          + New session
+                        </button>
+                      </div>
+
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3 }}>
@@ -700,6 +1060,7 @@ export default function App() {
                       {/* Final report */}
                       {isComplete && state.analysis && (
                         <DiagnosticReport
+                          sessionId={state.sessionId || ''}
                           analysis={state.analysis}
                           checkpointLog={state.checkpointLog}
                           serverName={state.serverName}

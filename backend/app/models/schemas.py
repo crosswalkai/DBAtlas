@@ -50,6 +50,11 @@ class CheckpointDecisionRequest(BaseModel):
     dba_override_reason: Optional[str] = Field(None, max_length=500)
 
 
+class ShareReportRequest(BaseModel):
+    recipient: str
+    message: Optional[str] = None
+
+
 # ── Internal Models ───────────────────────────────────────────────────────────
 
 class PlaybookStep(BaseModel):
@@ -157,6 +162,19 @@ class DiagnoseResponse(BaseModel):
     dba_overrides: int = 0
     analysis: FinalAnalysis
     generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+
+
+class ChatResponse(BaseModel):
+    response: str
 
 
 # ── SSE Event Models ──────────────────────────────────────────────────────────

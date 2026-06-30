@@ -23,7 +23,8 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 from app.models.schemas import (
     DiagnoseRequest, SseTokenRequest, SseTokenResponse,
-    CheckpointDecisionRequest,
+    CheckpointDecisionRequest, ShareReportRequest,
+    ChatRequest, ChatResponse,
 )
 from app.services.session_store import session_store
 from app.services.checkpoint_loop import CheckpointLoop
@@ -344,3 +345,65 @@ async def get_playbook(
     if not pb:
         raise HTTPException(status_code=404, detail=f"Playbook not found: {playbook_id}")
     return pb.model_dump()
+
+
+@router.post("/sessions/{session_id}/share")
+async def share_report(
+    session_id: str,
+    body: ShareReportRequest,
+    dba_uid: str = Depends(get_current_user),
+):
+    """
+    Share the diagnostic report via email.
+    In local mock mode, we validate inputs, print/log the sharing event, and return success.
+    """
+    session = session_store.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
+
+    # Simulating background task / SMTP send
+    logger.info(
+        f"[EMAIL SHARE] DBA {dba_uid} sharing Session {session_id} report to {body.recipient}."
+        f" Custom message: {body.message or 'None'}"
+    )
+    print(
+        f"\n======================================================\n"
+        f"EMAIL SENT TO: {body.recipient}\n"
+        f"SUBJECT: DBAtlas Triage Report - Ticket {session.ticket_number} ({session.dbms.upper()})\n"
+        f"MESSAGE: {body.message or 'Here is the report.'}\n"
+        f"REPORT SUMMARY: {session.final_analysis.summary if session.final_analysis else 'No analysis generated yet.'}\n"
+        f"======================================================\n"
+    )
+
+    return {
+        "status": "success",
+        "message": f"Report successfully emailed to {body.recipient}",
+    }
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """
+    Knowledge base Q&A chat endpoint.
+    """
+    import os
+    try:
+        # Robust absolute path resolution for SPECIFICATION.md
+        current_file = os.path.abspath(__file__)
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file))))
+        spec_path = os.path.join(root_dir, "SPECIFICATION.md")
+        
+        try:
+            with open(spec_path, "r", encoding="utf-8") as f:
+                spec_content = f.read()
+        except FileNotFoundError:
+            logger.warning(f"SPECIFICATION.md not found at {spec_path}. Using fallback content.")
+            spec_content = "DBAtlas is an AI-powered diagnostic tool for Database Administrators. It uses Claude to route diagnostic steps."
+
+        claude = ClaudeClient()
+        anthropic_messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
+        reply = await claude.chat(messages=anthropic_messages, specification_content=spec_content)
+        return ChatResponse(response=reply)
+    except Exception as e:
+        logger.exception(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

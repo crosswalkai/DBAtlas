@@ -35,6 +35,12 @@ export const listPlaybooks = (dbms?: string) =>
 export const getHealth = () =>
   api.get('/health').then(r => r.data);
 
+export const shareReport = (sessionId: string, recipient: string, message?: string) =>
+  api.post(`/sessions/${sessionId}/share`, { recipient, message }).then(r => r.data);
+
+export const sendChatMessage = (messages: any[]) =>
+  api.post('/chat', { messages }).then(r => r.data);
+
 // SSE stream — returns an EventSource
 export const openSseStream = (sessionId: string): EventSource => {
   const url = `${BASE}/api/v1/diagnose/${sessionId}/stream?token=local-dev-no-auth`;
