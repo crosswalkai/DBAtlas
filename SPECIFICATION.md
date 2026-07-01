@@ -519,6 +519,7 @@ Server-Sent Events for real-time checkpoint updates.
 ## 14.2 Next Phase
 
 Deploy the full-stack application to GCP Cloud Run with Firestore, Cloud Storage, and Secret Manager.
+* **Production Demo URL**: https://dbatlas-1070386803424.us-west2.run.app/
 
 Enable authentication and per-user session ownership.
 

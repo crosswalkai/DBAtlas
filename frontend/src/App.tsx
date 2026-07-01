@@ -505,11 +505,6 @@ function SideNav({
   setActiveView: (v: ActiveView) => void;
   onToggleChat: () => void;
 }) {
-  const items: { id: ActiveView; icon: string; label: string }[] = [
-    { id: 'diagnose', icon: '⚕', label: 'Diagnostic' },
-    { id: 'history',  icon: '🗂', label: 'History' },
-  ];
-
   return (
     <nav style={{
       width: 56, flexShrink: 0,
@@ -519,30 +514,27 @@ function SideNav({
       alignItems: 'center', gap: 4,
     }}>
       <div style={{ flex: 1 }} />
-      {items.map(item => {
-        const active = activeView === item.id;
-        return (
-          <button
-            key={item.id}
-            onClick={() => setActiveView(item.id)}
-            title={item.label}
-            style={{
-              width: 40, height: 40, borderRadius: 'var(--radius)',
-              border: 'none', cursor: 'pointer', display: 'flex',
-              flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 2, background: active ? 'var(--accent-light)' : 'transparent',
-              color: active ? 'var(--accent)' : 'var(--text-muted)',
-              transition: 'all 0.15s',
-            }}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
+      
+      {/* Diagnostic button */}
+      <button
+        onClick={() => setActiveView('diagnose')}
+        title="Diagnostic"
+        style={{
+          width: 40, height: 40, borderRadius: 'var(--radius)',
+          border: 'none', cursor: 'pointer', display: 'flex',
+          flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 2, background: activeView === 'diagnose' ? 'var(--accent-light)' : 'transparent',
+          color: activeView === 'diagnose' ? 'var(--accent)' : 'var(--text-muted)',
+          transition: 'all 0.15s',
+        }}
+      >
+        <span style={{ fontSize: 16, lineHeight: 1 }}>⚕</span>
+        <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
+          Diagnostic
+        </span>
+      </button>
 
+      {/* Chat button */}
       <button
         onClick={onToggleChat}
         title="Knowledge Base Chat"
@@ -564,6 +556,26 @@ function SideNav({
       </button>
 
       <div style={{ flex: 1 }} />
+
+      {/* History button - moved to bottom */}
+      <button
+        onClick={() => setActiveView('history')}
+        title="History"
+        style={{
+          width: 40, height: 40, borderRadius: 'var(--radius)',
+          border: 'none', cursor: 'pointer', display: 'flex',
+          flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 2, background: activeView === 'history' ? 'var(--accent-light)' : 'transparent',
+          color: activeView === 'history' ? 'var(--accent)' : 'var(--text-muted)',
+          transition: 'all 0.15s',
+          marginBottom: 10,
+        }}
+      >
+        <span style={{ fontSize: 16, lineHeight: 1 }}>🗂</span>
+        <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
+          History
+        </span>
+      </button>
 
       {/* Mock data indicator */}
       <div
@@ -678,33 +690,49 @@ export default function App() {
         boxShadow: 'var(--shadow-sm)',
       }}>
 
-        {/* Logo */}
-        {!(activeView === 'diagnose' && isIdle) && (
-          <>
-            <button
-              onClick={handleReset}
-              title="Go to homepage"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, marginRight: 4,
-                background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-                borderRadius: 'var(--radius)', transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              <img src="/DBAtlas-mark.svg" alt="DBAtlas" style={{ height: 28, width: 28, flexShrink: 0 }} />
-              <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto' }} />
-            </button>
-            <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
-          </>
-        )}
-
-        {/* Tic-Tac-Toe Wait Game (Repurposed Space) */}
-        {hasSession && activeView === 'diagnose' && (
-          <TicTacToeWidget disabled={phase === 'pending_approval'} />
-        )}
+        {/* Logo / Banner */}
+        <button
+          onClick={handleReset}
+          title="Go to homepage"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginRight: 4,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+            borderRadius: 'var(--radius)', transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >
+          {/* If on homepage (activeView is 'diagnose' and isIdle) */}
+          {(activeView === 'diagnose' && isIdle) ? (
+            <img src="/DBAtlas-mark.svg" alt="DBAtlas" style={{ height: 28, width: 28, flexShrink: 0 }} />
+          ) : (
+            /* If on active diagnostic page */
+            (activeView === 'diagnose' && !isIdle) ? (
+              <>
+                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', marginLeft: 4 }}>
+                  Database Agentic Troubleshooting Advisor
+                </span>
+              </>
+            ) : (
+              /* For other views (e.g. History) */
+              <>
+                <img src="/DBAtlas-mark.svg" alt="DBAtlas" style={{ height: 28, width: 28, flexShrink: 0 }} />
+                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto' }} />
+              </>
+            )
+          )}
+        </button>
+        <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
 
         <div style={{ flex: 1 }} />
+
+        {/* Tic-Tac-Toe Wait Game (Repurposed Space) - moved to the right end */}
+        {hasSession && activeView === 'diagnose' && (
+          <div style={{ marginRight: 8 }}>
+            <TicTacToeWidget disabled={phase === 'pending_approval'} />
+          </div>
+        )}
 
         <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
 
