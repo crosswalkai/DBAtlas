@@ -12,6 +12,7 @@ interface Props {
   ticketNumber: string;
   playbookId: string | null;
   mode: string;
+  stepElapsed?: Record<string, { active: number; wait: number }>;
 }
 
 function CopySmallButton({ text }: { text: string }) {
@@ -72,8 +73,9 @@ function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?:
 
 export function DiagnosticReport({
   sessionId,
-  analysis, checkpointLog, serverName, ticketNumber, playbookId, mode,
+  analysis, checkpointLog, serverName, ticketNumber, playbookId, mode, stepElapsed,
 }: Props) {
+  const [activeTab, setActiveTab] = React.useState<'report' | 'audit'>('report');
   const [showCheckpointLog, setShowCheckpointLog] = React.useState(false);
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [recipient, setRecipient] = React.useState('');
@@ -122,188 +124,349 @@ export function DiagnosticReport({
 
   return (
     <div className="fade-in" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      
+      {/* Tabs Selector */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: 4, gap: 16 }}>
+        <button
+          onClick={() => setActiveTab('report')}
+          style={{
+            background: 'none', border: 'none', borderBottom: `2px solid ${activeTab === 'report' ? 'var(--accent)' : 'transparent'}`,
+            padding: '8px 12px', fontSize: 13, fontWeight: activeTab === 'report' ? 600 : 500,
+            color: activeTab === 'report' ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer',
+            fontFamily: 'var(--font-sans)', outline: 'none', transition: 'all 0.15s'
+          }}
+        >
+          📋 Recommendations
+        </button>
+        <button
+          onClick={() => setActiveTab('audit')}
+          style={{
+            background: 'none', border: 'none', borderBottom: `2px solid ${activeTab === 'audit' ? 'var(--accent)' : 'transparent'}`,
+            padding: '8px 12px', fontSize: 13, fontWeight: activeTab === 'audit' ? 600 : 500,
+            color: activeTab === 'audit' ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer',
+            fontFamily: 'var(--font-sans)', outline: 'none', transition: 'all 0.15s'
+          }}
+        >
+          🛡 Audit & Explainability
+        </button>
+      </div>
 
-      {/* Analysis card */}
-      <Card accentColor="var(--accent)">
-        {/* Card header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 16px', background: 'var(--surface-2)',
-          borderBottom: '1px solid var(--border)',
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {playbookId || 'diagnostic'} · {mode} mode
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              onClick={() => setShowShareModal(true)}
-              style={{
-                fontSize: 11, padding: '3px 8px',
-                background: 'var(--surface-1)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
-                display: 'flex', alignItems: 'center', gap: 4,
-                outline: 'none',
-              }}
-            >
-              <span>✉</span>
-              <span>Share Report</span>
-            </button>
-            <SeverityBadge severity={analysis.severity} />
-          </div>
-        </div>
-
-        <div style={{ padding: '16px' }}>
-          {/* Summary */}
-          <div style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, marginBottom: 16 }}>
-            {analysis.summary}
-          </div>
-
-          <div style={{
-            fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic',
-            marginBottom: 14, padding: '6px 10px',
-            background: 'var(--surface-2)', borderRadius: 'var(--radius)',
-          }}>
-            Severity rationale: {analysis.severity_rationale}
-          </div>
-
-          {/* Key findings */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <SectionLabel>Key findings</SectionLabel>
-            <CopyAllButton texts={analysis.key_findings} label="Copy All Findings" />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-            {analysis.key_findings.map((finding, i) => (
-              <div key={i} style={{
-                padding: '9px 12px',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
-                borderLeft: '2px solid var(--accent)',
-                borderRadius: 'var(--radius)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                    Finding {i + 1}
-                  </div>
-                  <CopySmallButton text={finding} />
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  {finding}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Recommended actions */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <SectionLabel>Recommended actions</SectionLabel>
-            <CopyAllButton texts={analysis.recommended_actions} label="Copy All Actions" />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-            {analysis.recommended_actions.map((action, i) => (
-              <div key={i} style={{
-                display: 'flex', gap: 10, padding: '8px 12px',
-                background: 'var(--surface-2)', border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)', alignItems: 'flex-start',
-                justifyContent: 'space-between',
-              }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
-                    color: 'var(--accent)', width: 18, flexShrink: 0, marginTop: 1,
-                  }}>
-                    {i + 1}.
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                    {action}
-                  </span>
-                </div>
-                <div style={{ marginLeft: 8 }}>
-                  <CopySmallButton text={`${i + 1}. ${action}`} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Steps summary */}
-          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--text-muted)' }}>
-            <span>Steps executed: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{analysis.steps_executed.join(', ')}</strong></span>
-            {analysis.steps_skipped.length > 0 && (
-              <span>Skipped: <strong style={{ fontFamily: 'var(--font-mono)', textDecoration: 'line-through' }}>{analysis.steps_skipped.join(', ')}</strong></span>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Checkpoint log — collapsible */}
-      {checkpointLog.length > 0 && (
-        <Card>
-          <button
-            onClick={() => setShowCheckpointLog(v => !v)}
-            style={{
-              width: '100%', padding: '10px 16px',
+      {activeTab === 'report' && (
+        <>
+          {/* Analysis card */}
+          <Card accentColor="var(--accent)">
+            {/* Card header */}
+            <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'var(--surface-2)', border: 'none', cursor: 'pointer',
-              fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.05em',
-            }}
-          >
-            <span>Checkpoint decision log ({checkpointLog.length} steps)</span>
-            <span>{showCheckpointLog ? '▲' : '▼'}</span>
-          </button>
-          {showCheckpointLog && (
-            <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
-                <CopyAllButton texts={checkpointLog.map(entry => 
-                  `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
-                  `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
-                  (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
-                )} label="Copy All Log Entries" />
+              padding: '10px 16px', background: 'var(--surface-2)',
+              borderBottom: '1px solid var(--border)',
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {playbookId || 'diagnostic'} · {mode} mode
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  style={{
+                    fontSize: 11, padding: '3px 8px',
+                    background: 'var(--surface-1)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                    color: 'var(--text-muted)',
+                    fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    outline: 'none',
+                  }}
+                >
+                  <span>✉</span>
+                  <span>Share Report</span>
+                </button>
+                <SeverityBadge severity={analysis.severity} />
               </div>
-              {checkpointLog.map((entry, i) => (
-                <div key={i} style={{
-                  padding: '10px 12px',
-                  background: 'var(--surface-2)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            </div>
+
+            <div style={{ padding: '16px' }}>
+              {/* Summary */}
+              <div style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, marginBottom: 16 }}>
+                {analysis.summary}
+              </div>
+
+              <div style={{
+                fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic',
+                marginBottom: 14, padding: '6px 10px',
+                background: 'var(--surface-2)', borderRadius: 'var(--radius)',
+              }}>
+                Severity rationale: {analysis.severity_rationale}
+              </div>
+
+              {/* Key findings */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <SectionLabel>Key findings</SectionLabel>
+                <CopyAllButton texts={analysis.key_findings} label="Copy All Findings" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                {analysis.key_findings.map((finding, i) => (
+                  <div key={i} style={{
+                    padding: '9px 12px',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    borderLeft: '2px solid var(--accent)',
+                    borderRadius: 'var(--radius)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                        Finding {i + 1}
+                      </div>
+                      <CopySmallButton text={finding} />
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                      {finding}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recommended actions */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <SectionLabel>Recommended actions</SectionLabel>
+                <CopyAllButton texts={analysis.recommended_actions} label="Copy All Actions" />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                {analysis.recommended_actions.map((action, i) => (
+                  <div key={i} style={{
+                    display: 'flex', gap: 10, padding: '8px 12px',
+                    background: 'var(--surface-2)', border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)', alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                  }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
                       <span style={{
                         fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
-                        color: 'var(--accent)',
+                        color: 'var(--accent)', width: 18, flexShrink: 0, marginTop: 1,
                       }}>
-                        {entry.step_id}
+                        {i + 1}.
                       </span>
-                      <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>
-                        {entry.row_count} rows
+                      <span style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                        {action}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {entry.dba_decision && (
-                        <DbaDecisionBadge decision={entry.dba_decision} />
-                      )}
-                      <CopySmallButton text={
-                        `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
-                        `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
-                        (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
-                      } />
+                    <div style={{ marginLeft: 8 }}>
+                      <CopySmallButton text={`${i + 1}. ${action}`} />
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    {entry.interactive_summary || entry.claude_assessment}
-                  </div>
-                  {entry.dba_override_reason && (
-                    <div style={{ fontSize: 10, color: 'var(--warning)', marginTop: 5, fontStyle: 'italic' }}>
-                      DBA note: "{entry.dba_override_reason}"
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* Steps summary */}
+              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--text-muted)' }}>
+                <span>Steps executed: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{analysis.steps_executed.join(', ')}</strong></span>
+                {analysis.steps_skipped.length > 0 && (
+                  <span>Skipped: <strong style={{ fontFamily: 'var(--font-mono)', textDecoration: 'line-through' }}>{analysis.steps_skipped.join(', ')}</strong></span>
+                )}
+              </div>
             </div>
+          </Card>
+
+          {/* Checkpoint log — collapsible */}
+          {checkpointLog.length > 0 && (
+            <Card>
+              <button
+                onClick={() => setShowCheckpointLog(v => !v)}
+                style={{
+                  width: '100%', padding: '10px 16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: 'var(--surface-2)', border: 'none', cursor: 'pointer',
+                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                  textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}
+              >
+                <span>Checkpoint decision log ({checkpointLog.length} steps)</span>
+                <span>{showCheckpointLog ? '▲' : '▼'}</span>
+              </button>
+              {showCheckpointLog && (
+                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+                    <CopyAllButton texts={checkpointLog.map(entry => 
+                      `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
+                      `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
+                      (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
+                    )} label="Copy All Log Entries" />
+                  </div>
+                  {checkpointLog.map((entry, i) => (
+                    <div key={i} style={{
+                      padding: '10px 12px',
+                      background: 'var(--surface-2)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius)',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{
+                            fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+                            color: 'var(--accent)',
+                          }}>
+                            {entry.step_id}
+                          </span>
+                          <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>
+                            {entry.row_count} rows
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {entry.dba_decision && (
+                            <DbaDecisionBadge decision={entry.dba_decision} />
+                          )}
+                          <CopySmallButton text={
+                            `Step: ${entry.step_id} (${entry.row_count} rows)\n` +
+                            `Assessment: ${entry.interactive_summary || entry.claude_assessment}` +
+                            (entry.dba_override_reason ? `\nDBA note: "${entry.dba_override_reason}"` : '')
+                          } />
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        {entry.interactive_summary || entry.claude_assessment}
+                      </div>
+                      {entry.dba_override_reason && (
+                        <div style={{ fontSize: 10, color: 'var(--warning)', marginTop: 5, fontStyle: 'italic' }}>
+                          DBA note: "{entry.dba_override_reason}"
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           )}
-        </Card>
+        </>
+      )}
+
+      {activeTab === 'audit' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Whitelist banner */}
+          <div style={{
+            padding: '12px 16px', background: 'var(--success-light)',
+            border: '1px solid var(--success-border)', borderRadius: 'var(--radius-md)',
+            display: 'flex', alignItems: 'center', gap: 10, color: 'var(--success)',
+            fontSize: 12, fontWeight: 500, lineHeight: 1.5
+          }}>
+            <span style={{ fontSize: 16 }}>🛡</span>
+            <span><strong>Whitelist Verification Confirmed</strong>: All executed diagnostic scripts in this session were strictly validated against senior-DBA playbooks. Claude acted as a Router, not a Generator.</span>
+          </div>
+
+          {/* Metadata Card */}
+          <Card>
+            <div style={{ padding: 16 }}>
+              <SectionLabel>Audit Compliance Metadata</SectionLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginTop: 12 }}>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase' }}>ServiceNow Ticket</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>{ticketNumber}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase' }}>Target Database Server</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>{serverName}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase' }}>Operating Mode</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2, textTransform: 'capitalize' }}>{mode} Mode</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase' }}>DBMS Detected</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2, textTransform: 'uppercase' }}>{playbookId ? (playbookId.split('-')[0] || 'Unknown') : 'Unknown'}</div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Chronological Step Execution Timeline */}
+          <Card>
+            <div style={{ padding: 16 }}>
+              <SectionLabel>Chronological Step Execution Trail</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                {checkpointLog.map((entry, index) => {
+                  const t = stepElapsed ? stepElapsed[entry.step_id] : undefined;
+                  return (
+                    <div key={index} style={{
+                      padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius)', display: 'flex', flexDirection: 'column', gap: 10
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{
+                            width: 20, height: 20, borderRadius: '50%', background: 'var(--accent)',
+                            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 10, fontWeight: 600
+                          }}>{entry.iteration}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {entry.step_id}
+                          </span>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                            — {entry.step_description}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {entry.dba_decision && (
+                            <DbaDecisionBadge decision={entry.dba_decision} />
+                          )}
+                          <span style={{
+                            fontSize: 10, color: 'var(--text-faint)', background: 'var(--surface-3)',
+                            border: '1px solid var(--border)', padding: '2px 6px', borderRadius: 'var(--radius-sm)',
+                            fontFamily: 'var(--font-mono)'
+                          }}>
+                            {entry.row_count} rows
+                          </span>
+                          {(() => {
+                            const activeSec = t ? t.active : (entry.active_duration !== undefined ? entry.active_duration : 0);
+                            const waitSec = t ? t.wait : (entry.wait_duration !== undefined ? entry.wait_duration : 0);
+                            const hasTiming = t !== undefined || entry.active_duration !== undefined || entry.wait_duration !== undefined;
+                            if (!hasTiming) return null;
+                            return (
+                              <span style={{
+                                fontSize: 10, color: 'var(--text-faint)', background: 'var(--surface-3)',
+                                border: '1px solid var(--border)', padding: '2px 6px', borderRadius: 'var(--radius-sm)',
+                                fontFamily: 'var(--font-mono)'
+                              }}>
+                                {waitSec > 0 ? `${activeSec}s active / ${waitSec}s wait` : `${activeSec}s active`}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      <Divider margin={2} />
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                        <div>
+                          <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 4 }}>
+                            AI Assessment & Proposed Routing
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                            <strong>Recommendation:</strong> {entry.claude_recommendation?.routing_decision || entry.routing_decision} 
+                            {entry.claude_recommendation?.next_step && ` (Next Step: ${entry.claude_recommendation.next_step})`}
+                            <br />
+                            <strong>Rationale:</strong> {entry.interactive_summary || entry.claude_assessment}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 4 }}>
+                            DBA Decision Audit
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                            <strong>Decision:</strong> {entry.dba_decision === 'approved' ? 'Approved proposal' : entry.dba_decision === 'redirected' ? `Redirected to: ${entry.dba_selected_step}` : entry.dba_decision === 'switched_playbook' ? `Switched playbook to: ${entry.dba_selected_playbook}` : entry.dba_decision === 'stopped' ? 'Stopped session' : 'Completed automatically'}
+                            {entry.dba_override_reason && (
+                              <>
+                                <br />
+                                <strong style={{ color: 'var(--warning)' }}>DBA Override Note:</strong> <span style={{ fontStyle: 'italic' }}>"{entry.dba_override_reason}"</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* Share Report Modal */}

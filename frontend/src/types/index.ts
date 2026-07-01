@@ -70,6 +70,8 @@ export interface CheckpointLogEntry {
   dba_selected_playbook?: string;
   dba_override_reason?: string;
   mode: SessionMode;
+  active_duration?: number;
+  wait_duration?: number;
 }
 
 export interface SessionDetail {
@@ -84,6 +86,9 @@ export interface SessionDetail {
   checkpoint_log: CheckpointLogEntry[];
   analysis?: FinalAnalysis;
   created_at: string;
+  server_name?: string;
+  ticket_number?: string;
+  question?: string;
 }
 
 export interface PlaybookSummary {

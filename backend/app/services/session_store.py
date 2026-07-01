@@ -73,6 +73,9 @@ class SessionData:
         # Timestamps
         self.created_at = datetime.utcnow()
         self.last_activity = datetime.utcnow()
+        self.step_start_time: Optional[datetime] = None
+        self.step_wait_start_time: Optional[datetime] = None
+        self.step_timings: dict[str, dict] = {}
 
         # SSE event queue
         self.sse_queue: asyncio.Queue = asyncio.Queue()

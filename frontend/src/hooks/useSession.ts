@@ -234,7 +234,50 @@ export function useSession() {
     setState(initialState);
   }, []);
 
-  return { state, run, submitDecision, reset };
+  const load = useCallback(async (sessionId: string) => {
+    esSrcRef.current?.close();
+    try {
+      const session = await getSession(sessionId);
+      setState({
+        sessionId: session.session_id,
+        phase: session.state.toLowerCase() as any,
+        mode: session.mode,
+        dbms: session.dbms,
+        playbookId: session.playbook_id,
+        playbookTitle: session.playbook_id,
+        intentCategory: null,
+        currentStep: null,
+        currentIteration: session.iteration,
+        nodes: session.checkpoint_log.map(entry => ({
+          iteration: entry.iteration,
+          step_id: entry.step_id,
+          step_description: entry.step_description,
+          state: 'complete',
+          row_count: entry.row_count,
+          dba_decision: entry.dba_decision,
+          routing_decision: entry.routing_decision,
+        })),
+        pendingApproval: null,
+        lastEvaluation: null,
+        analysis: session.analysis || null,
+        checkpointLog: session.checkpoint_log,
+        errorMessage: null,
+        stepsExecuted: session.steps_executed,
+        stepsSkipped: session.steps_skipped,
+        serverName: session.server_name || '',
+        ticketNumber: session.ticket_number || '',
+        question: session.question || '',
+      });
+    } catch (e: any) {
+      setState(prev => ({
+        ...prev,
+        phase: 'error',
+        errorMessage: e.response?.data?.detail || 'Failed to load past session details.'
+      }));
+    }
+  }, []);
+
+  return { state, run, submitDecision, reset, load };
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────

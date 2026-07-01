@@ -287,6 +287,9 @@ async def get_session(
         "checkpoint_log": [entry.model_dump() for entry in session.checkpoint_log],
         "analysis": session.final_analysis.model_dump() if session.final_analysis else None,
         "created_at": session.created_at.isoformat(),
+        "server_name": session.server_name,
+        "ticket_number": session.ticket_number,
+        "question": session.question,
     }
 
 

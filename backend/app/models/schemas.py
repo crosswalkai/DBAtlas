@@ -136,6 +136,8 @@ class CheckpointLogEntry(BaseModel):
     dba_selected_playbook: Optional[str] = None
     dba_override_reason: Optional[str] = None
     mode: SessionMode = "auto"
+    active_duration: int = 0
+    wait_duration: int = 0
 
 
 class FinalAnalysis(BaseModel):

@@ -146,6 +146,7 @@ class CheckpointLoop:
                     })
 
                 # ── EXECUTING ─────────────────────────────────────────────────
+                session.step_start_time = datetime.utcnow()
                 session.state = "EXECUTING"
                 await self._emit(session, "step_executing", {
                     "iteration": session.iteration,
@@ -219,6 +220,9 @@ class CheckpointLoop:
 
                 # ── PENDING_APPROVAL (Interactive Mode) ───────────────────────
                 if session.mode == "interactive":
+                    active_dur = int((datetime.utcnow() - session.step_start_time).total_seconds()) if session.step_start_time else 0
+                    session.step_timings[current_step_id] = {"active": active_dur, "wait": 0}
+                    session.step_wait_start_time = datetime.utcnow()
                     session.state = "PENDING_APPROVAL"
                     session.pending_decision = validated_decision
 
@@ -251,6 +255,9 @@ class CheckpointLoop:
 
                     # Wait for DBA decision
                     dba_result = await self._wait_for_dba_decision(session)
+                    wait_dur = int((datetime.utcnow() - session.step_wait_start_time).total_seconds()) if session.step_wait_start_time else 0
+                    if current_step_id in session.step_timings:
+                        session.step_timings[current_step_id]["wait"] = wait_dur
                     if dba_result is None:
                         # Timeout
                         forced_stop = True
@@ -298,6 +305,8 @@ class CheckpointLoop:
                         final_decision = validated_decision
                 else:
                     # Auto Mode — log checkpoint, proceed immediately
+                    active_dur = int((datetime.utcnow() - session.step_start_time).total_seconds()) if session.step_start_time else 0
+                    session.step_timings[current_step_id] = {"active": active_dur, "wait": 0}
                     log_entry = self._build_checkpoint_log(
                         session, result, validated_decision, None
                     )
@@ -515,6 +524,7 @@ class CheckpointLoop:
         decision: ClaudeRoutingDecision,
         dba_result: Optional[dict],
     ) -> CheckpointLogEntry:
+        timing = session.step_timings.get(result.step_id, {"active": 0, "wait": 0})
         return CheckpointLogEntry(
             iteration=session.iteration,
             step_id=result.step_id,
@@ -531,6 +541,8 @@ class CheckpointLoop:
             dba_selected_playbook=dba_result.get("dba_selected_playbook") if dba_result else None,
             dba_override_reason=dba_result.get("dba_override_reason") if dba_result else None,
             mode=session.mode,
+            active_duration=timing["active"],
+            wait_duration=timing["wait"],
         )
 
     def _build_response(self, session: SessionData):

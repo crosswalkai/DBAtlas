@@ -594,7 +594,7 @@ function SideNav({
 
 // ── Main app ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const { state, run, submitDecision, reset } = useSession();
+  const { state, run, submitDecision, reset, load } = useSession();
   const { phase } = state;
   const [activeView, setActiveView] = useState<ActiveView>('diagnose');
   const [historyRefresh, setHistoryRefresh] = useState(0);
@@ -634,31 +634,77 @@ export default function App() {
   const { elapsed, reset: resetElapsed } = useElapsedTimer(stepRunning);
 
   // Track per-step timing
-  const [stepStartTime, setStepStartTime] = useState<number | null>(null);
-  const [waitStartTime, setWaitStartTime] = useState<number | null>(null);
   const [stepElapsed, setStepElapsed] = useState<Record<string, { active: number; wait: number }>>({});
+  const lastStateRef = useRef<{ phase: string; stepId: string | null; time: number }>({
+    phase: 'idle',
+    stepId: null,
+    time: Date.now(),
+  });
 
   useEffect(() => {
-    if (phase === 'executing') {
-      setStepStartTime(Date.now());
-      setWaitStartTime(null);
-    } else if (phase === 'pending_approval' && state.currentStep) {
-      const active = stepStartTime ? Math.floor((Date.now() - stepStartTime) / 1000) : 0;
-      setStepElapsed(prev => ({
-        ...prev,
-        [state.currentStep!]: { active, wait: 0 },
-      }));
-      setWaitStartTime(Date.now());
+    const prev = lastStateRef.current;
+    const now = Date.now();
+    const elapsedSeconds = Math.max(0, Math.floor((now - prev.time) / 1000));
+
+    if (prev.stepId) {
+      const isPrevActive = ['executing', 'evaluating'].includes(prev.phase);
+      const isPrevWait = prev.phase === 'pending_approval';
+
+      if (isPrevActive || isPrevWait) {
+        setStepElapsed(existing => {
+          const current = existing[prev.stepId!] || { active: 0, wait: 0 };
+          return {
+            ...existing,
+            [prev.stepId!]: {
+              active: current.active + (isPrevActive ? elapsedSeconds : 0),
+              wait: current.wait + (isPrevWait ? elapsedSeconds : 0),
+            }
+          };
+        });
+      }
     }
-    // Record wait time when next step starts (handled by the executing branch above)
+
+    lastStateRef.current = {
+      phase: phase,
+      stepId: state.currentStep,
+      time: now,
+    };
   }, [phase, state.currentStep]);
 
+  // Real-time ticking for the current active/waiting step
   useEffect(() => {
     if (phase === 'idle') {
       setStepElapsed({});
-      setStepStartTime(null);
-      setWaitStartTime(null);
+      lastStateRef.current = { phase: 'idle', stepId: null, time: Date.now() };
+      return;
     }
+
+    const interval = setInterval(() => {
+      const prev = lastStateRef.current;
+      const now = Date.now();
+      const elapsedSeconds = Math.max(0, Math.floor((now - prev.time) / 1000));
+
+      if (prev.stepId && elapsedSeconds > 0) {
+        const isPrevActive = ['executing', 'evaluating'].includes(prev.phase);
+        const isPrevWait = prev.phase === 'pending_approval';
+
+        if (isPrevActive || isPrevWait) {
+          setStepElapsed(existing => {
+            const current = existing[prev.stepId!] || { active: 0, wait: 0 };
+            return {
+              ...existing,
+              [prev.stepId!]: {
+                active: current.active + (isPrevActive ? 1 : 0),
+                wait: current.wait + (isPrevWait ? 1 : 0),
+              }
+            };
+          });
+        }
+        lastStateRef.current.time = now;
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [phase]);
 
   const handleReset = useCallback(() => {
@@ -833,7 +879,10 @@ export default function App() {
           {/* History view */}
           {activeView === 'history' && (
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <SessionHistory key={historyRefresh} onReopen={() => setActiveView('diagnose')} />
+              <SessionHistory key={historyRefresh} onReopen={(sid) => {
+                load(sid);
+                setActiveView('diagnose');
+              }} />
             </div>
           )}
 
@@ -1106,6 +1155,7 @@ export default function App() {
                           ticketNumber={state.ticketNumber}
                           playbookId={state.playbookId}
                           mode={state.mode}
+                          stepElapsed={stepElapsed}
                         />
                       )}
 
