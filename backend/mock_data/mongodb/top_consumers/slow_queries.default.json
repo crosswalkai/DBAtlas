@@ -1,0 +1,12 @@
+{
+  "step_id": "slow_queries",
+  "step_description": "Slow operations from the database profiler log",
+  "columns": ["op", "ns", "query_plan", "duration_ms", "locks_acquired"],
+  "rows": [
+    ["update", "catalog.logs", "COLLSCAN", 850, "Global Write Lock"],
+    ["insert", "catalog.logs", "COLLSCAN", 120, "Collection Write Lock"],
+    ["find", "catalog.orders", "IXSCAN", 15, "None"]
+  ],
+  "row_count": 3,
+  "narrative_hint": "[DEMO CONTEXT] The database profiler reveals slow `update` and `insert` operations on `catalog.logs` performing full collection scans (COLLSCAN) and acquiring global write locks. This confirms write latencies are caused by missing compound indexes on the logs query filters, blocking incoming queues."
+}

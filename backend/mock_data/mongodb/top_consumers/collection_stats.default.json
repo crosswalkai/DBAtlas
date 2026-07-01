@@ -1,0 +1,14 @@
+{
+  "step_id": "collection_stats",
+  "step_description": "Storage sizes and index overhead per collection",
+  "columns": ["collection", "document_count", "size_mb", "index_size_mb", "index_count"],
+  "rows": [
+    ["orders", 8542012, 1204.5, 450.2, 5],
+    ["customers", 2410291, 542.8, 120.4, 3],
+    ["logs", 45102912, 12450.2, 4820.5, 2],
+    ["inventory", 452010, 85.4, 24.1, 4],
+    ["sessions", 120452, 45.2, 12.8, 1]
+  ],
+  "row_count": 5,
+  "narrative_hint": "[DEMO CONTEXT] The 'logs' collection is extremely large (12GB) and consumes significant index overhead (4.8GB). Triage suggests index sizing is normal but operation logs might have high volume writes causing slow performance. Wait queue check next will confirm read/write ratio locks."
+}

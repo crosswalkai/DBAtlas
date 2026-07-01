@@ -751,7 +751,10 @@ export default function App() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
                 <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 26, width: 'auto', flexShrink: 0 }} />
                 <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', letterSpacing: '0.02em', marginTop: -1 }}>
-                  Database Agentic Troubleshooting Advisor
+                  <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>D</span>ata<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>b</span>ase{' '}
+                  <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>A</span>gentic{' '}
+                  <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>T</span>roub<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>l</span>eshooting{' '}
+                  <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>A</span>dvi<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>s</span>or
                 </span>
               </div>
             ) : (

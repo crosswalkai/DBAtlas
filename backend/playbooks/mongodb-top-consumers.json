@@ -1,0 +1,76 @@
+{
+  "id": "mongodb-top-consumers",
+  "dbms": "mongodb",
+  "intent_category": "resource_profiling",
+  "intent_tags": [
+    "top",
+    "consumers",
+    "resource",
+    "cpu",
+    "memory",
+    "io",
+    "size",
+    "index"
+  ],
+  "title": "MongoDB Top Consumers",
+  "description": "Identify collections with high storage sizes, index overhead, and operation latencies",
+  "entry_step": "collection_stats",
+  "alternate_playbooks": [
+    "mongodb-live-ops"
+  ],
+  "max_steps": 5,
+  "version": 1,
+  "author": "A. Sharma",
+  "steps": {
+    "collection_stats": {
+      "step_id": "collection_stats",
+      "description": "Storage sizes and index overhead per collection",
+      "script_ref": "scripts/mongodb/collection_stats.js",
+      "mock_data_key": "mongodb/top_consumers/collection_stats.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "current_op_latencies"
+      ],
+      "interactive_hints": {
+        "current_op_latencies": "Run to check active operational latencies for reads and writes",
+        "stop": "Stop here and analyze storage metrics"
+      },
+      "safe_to_run_first": true,
+      "max_rows": 15
+    },
+    "current_op_latencies": {
+      "step_id": "current_op_latencies",
+      "description": "Read, write, and command operational latencies",
+      "script_ref": "scripts/mongodb/op_latencies.js",
+      "mock_data_key": "mongodb/top_consumers/current_op_latencies.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "slow_queries"
+      ],
+      "interactive_hints": {
+        "slow_queries": "Run to find slow queries running longer than 100ms in the profiler",
+        "stop": "Stop here and analyze active latency metrics"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
+    },
+    "slow_queries": {
+      "step_id": "slow_queries",
+      "description": "Slow operations from the database profiler log",
+      "script_ref": "scripts/mongodb/slow_queries.js",
+      "mock_data_key": "mongodb/top_consumers/slow_queries.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final diagnostic report"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 25
+    }
+  }
+}

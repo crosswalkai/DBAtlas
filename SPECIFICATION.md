@@ -181,11 +181,11 @@ DBA override decisions in Interactive Mode feed the playbook improvement pipelin
 
 ## 5.2 Current Playbook Library
 
-Fourteen playbooks are authored across the four platforms, with the deepest coverage on SQL Server.
+Sixteen playbooks are authored across the four platforms, with the deepest coverage on SQL Server.
 
 
-| --- | --- | --- | --- | --- |
 | Playbook | Platform | Intent | Author |
+| --- | --- | --- | --- |
 | oracle-live-slowness-triage | Oracle | Live Triage | A. Simmons |
 | oracle-top-consumers | Oracle | Resource Profiling | A. Simmons |
 | oracle-historical-awr | Oracle | Historical Forensics | A. Simmons |
@@ -197,9 +197,10 @@ Fourteen playbooks are authored across the four platforms, with the deepest cove
 | sqlserver-stale-statistics | SQL Server | Historical Forensics | Q. Miller |
 | sqlserver-wait-stats-deviation | SQL Server | Historical Forensics | Q. Miller |
 | sqlserver-sleeping-sessions | SQL Server | Live Triage | Antigravity |
-| postgresql-live-slowness-triage | PostgreSQL | Live Triage | A. Sharma |
+| postgresql-live-slowness-triage | PostgreSQL | Live Triage | A. Sharma / Antigravity |
 | postgresql-top-consumers | PostgreSQL | Resource Profiling | A. Sharma |
 | mongodb-live-ops | MongoDB | Live Triage | A. Sharma |
+| mongodb-top-consumers | MongoDB | Resource Profiling | A. Sharma / Antigravity |
 
 
 

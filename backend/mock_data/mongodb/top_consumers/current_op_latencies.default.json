@@ -1,0 +1,12 @@
+{
+  "step_id": "current_op_latencies",
+  "step_description": "Read, write, and command operational latencies",
+  "columns": ["operation_type", "ops_count", "latency_ms_avg", "latency_ms_max"],
+  "rows": [
+    ["write", 12450, 48.2, 1450.0],
+    ["read", 85420, 2.1, 450.0],
+    ["command", 450, 1.5, 20.0]
+  ],
+  "row_count": 3,
+  "narrative_hint": "[DEMO CONTEXT] Write operations have an abnormally high average latency of 48.2ms, with spikes up to 1450ms. Read latencies remain sub-millisecond on average. The writes are locking/blocking queues on collections without appropriate write indexes or index contention on logs. Analyzing the database profiler log next is advised to find the actual queries."
+}

@@ -5,7 +5,7 @@ export interface Joke {
 }
 
 export const JOKES: Joke[] = [
-  // --- SQL Server (40 jokes) ---
+  // --- SQL Server (60 jokes) ---
   { id: 1, dbms: 'sqlserver', text: "Why did the SQL Server query go to therapy? It had too many nested loops and felt completely blocked." },
   { id: 2, dbms: 'sqlserver', text: "How many SQL Server DBAs does it take to change a lightbulb? Three. One to drop it, one to recreate it, and one to restore from backup." },
   { id: 3, dbms: 'sqlserver', text: "SQL Server: 'I have a brand new execution plan!' DBA: 'Is it faster?' SQL Server: 'No, but it is different!'" },
@@ -46,8 +46,28 @@ export const JOKES: Joke[] = [
   { id: 38, dbms: 'sqlserver', text: "Why did the database query fail the exam? It forgot to join the correct tables." },
   { id: 39, dbms: 'sqlserver', text: "Why did the AlwaysOn cluster go to the gym? To improve its failover capabilities." },
   { id: 40, dbms: 'sqlserver', text: "Why did the database developer get a cold? They left too many connections open to the draft." },
+  { id: 121, dbms: 'sqlserver', text: "Why does SQL Server hate developers who use SELECT *? Because it feels like being asked to read the entire menu when you just want a glass of water." },
+  { id: 122, dbms: 'sqlserver', text: "What is a SQL Server's favorite drink? A TempDB float. It's mostly ice, and it overflows immediately." },
+  { id: 123, dbms: 'sqlserver', text: "How do you know when your SQL Server query plan is bad? When the nested loops join is so deep it starts retrieving records from your previous job." },
+  { id: 124, dbms: 'sqlserver', text: "Why did the developer get a ticket from the SQL Server optimizer? They were caught speeding with a dirty read." },
+  { id: 125, dbms: 'sqlserver', text: "Why is TempDB like a high school locker room? It's filled with garbage, everyone uses it, and it never gets cleaned up." },
+  { id: 126, dbms: 'sqlserver', text: "What is a SQL Server DBA's favorite movie? Lock, Stock and Two Smoking Transaction Logs." },
+  { id: 127, dbms: 'sqlserver', text: "Why did the AlwaysOn Availability Group replica fail? Because the network card went on a coffee break during a transaction commit." },
+  { id: 128, dbms: 'sqlserver', text: "How does SQL Server tell you it's unhappy? It grabs all the RAM it can find and refuses to explain what it did with it." },
+  { id: 129, dbms: 'sqlserver', text: "Why did the SQL Server agent job get depressed? It spent its entire life running in a loop and never got promoted." },
+  { id: 130, dbms: 'sqlserver', text: "What does SQL Server do when it wants to ignore a developer? It generates a spool and takes a page latch." },
+  { id: 131, dbms: 'sqlserver', text: "Why did the query go to the counselor? It had severe fragmentation and felt completely disconnected from its clustered index." },
+  { id: 132, dbms: 'sqlserver', text: "Why are nested views in SQL Server like dreams in Inception? If you go three levels deep, time slows down to a crawl." },
+  { id: 133, dbms: 'sqlserver', text: "What does SQL Server do when you run a query with an implicit conversion? It converts your fast execution plan into a slow, sequential table scan." },
+  { id: 134, dbms: 'sqlserver', text: "Why did the DBA refuse to turn on Query Store? They didn't want the database to remember how bad their queries were." },
+  { id: 135, dbms: 'sqlserver', text: "What do you call a SQL Server database that has never had a deadlock? A test database." },
+  { id: 136, dbms: 'sqlserver', text: "Why did the query optimizer choose a hash match? Because it couldn't find a merge join that shared its interests." },
+  { id: 137, dbms: 'sqlserver', text: "Why does TempDB always fill up on a Sunday at 3 AM? Because the database scheduler knows exactly when you are sleeping." },
+  { id: 138, dbms: 'sqlserver', text: "How do you stop a SQL Server developer from writing bad queries? Take away their index hints." },
+  { id: 139, dbms: 'sqlserver', text: "Why did the database column go to therapy? It was tired of being told it was NULL-able and had no real value." },
+  { id: 140, dbms: 'sqlserver', text: "Why did the transaction log grow by 500%? Someone tried to delete one row from a table with a cascading foreign key." },
 
-  // --- Oracle (40 jokes) ---
+  // --- Oracle (60 jokes) ---
   { id: 41, dbms: 'oracle', text: "How do you know an Oracle DBA is happy? They only complain about licensing twice a day." },
   { id: 42, dbms: 'oracle', text: "What is an Oracle DBA's favorite error? ORA-00600: Internal error code, arguments: [Good luck, you will need it]." },
   { id: 43, dbms: 'oracle', text: "Why did the DBA write an Oracle package? They wanted to wrap their problems in a neat little body." },
@@ -88,8 +108,28 @@ export const JOKES: Joke[] = [
   { id: 78, dbms: 'oracle', text: "Why did the database tablespace go to court? It auto-extended without permission." },
   { id: 79, dbms: 'oracle', text: "Why did the Oracle RAC fail? The interconnect got disconnected by a vacuum cleaner." },
   { id: 80, dbms: 'oracle', text: "Why did the database query fail? It forgot to use the correct join clause." },
+  { id: 101, dbms: 'oracle', text: "ORA-01555: Snapshot too old. Like your DBA’s jokes about Oracle licensing options." },
+  { id: 102, dbms: 'oracle', text: "Why did the Oracle DBA cross the road? To tell Larry Ellison he’s already paid for the air he breathed on the other side." },
+  { id: 103, dbms: 'oracle', text: "What's the fastest way to make an Oracle query return 0 rows? Ask it to find a client who is fully compliant with their license agreement." },
+  { id: 104, dbms: 'oracle', text: "Why did the DBA refuse to update the Oracle database? ORA-03113: end-of-file on communication channel with my patience." },
+  { id: 105, dbms: 'oracle', text: "Why are Oracle database developers so quiet? They know that if they raise their voice, Larry Ellison will charge them for an extra audio channel." },
+  { id: 106, dbms: 'oracle', text: "How does an Oracle database introduce itself? 'Hello, my name is ORA-00600, but you can call me - Please open a Severity 1 SR'." },
+  { id: 107, dbms: 'oracle', text: "What do you call an Oracle query that runs instantly? A documentation typo." },
+  { id: 108, dbms: 'oracle', text: "Why did the Oracle DBA get a divorce? Because their partner wanted a commitment, but the DBA kept rolling back everything." },
+  { id: 109, dbms: 'oracle', text: "Why did the PL/SQL compiler cross the road? To show the Java Virtual Machine how to actually execute code before the sun goes down." },
+  { id: 110, dbms: 'oracle', text: "Oracle RAC: Twice the servers, twice the licensing fees, and twice the chance that a loose network cable will cause a split-brain failover." },
+  { id: 111, dbms: 'oracle', text: "Why did the Oracle database developer go to therapy? They had too many unhandled exceptions in their personal life." },
+  { id: 112, dbms: 'oracle', text: "Why do Oracle DBAs hate cloud migrations? Because they can't figure out how to migrate Larry's yacht to the cloud." },
+  { id: 113, dbms: 'oracle', text: "What is the DBA's favorite PL/SQL package? DBMS_OUTOFMEMORY." },
+  { id: 114, dbms: 'oracle', text: "Why did the DBA get a ticket during the Oracle migration? They exceeded the speed limit of the redo log writer." },
+  { id: 115, dbms: 'oracle', text: "Why does Oracle SQL Developer take so long to load? It's scanning your local drive to verify if you owe licensing fees for it." },
+  { id: 116, dbms: 'oracle', text: "How does an Oracle database handle a breakup? It returns ORA-02292: integrity constraint violated - child record found." },
+  { id: 117, dbms: 'oracle', text: "Why did the Oracle index refuse to rebuild? It was already perfectly balanced and didn't want to get involved in database politics." },
+  { id: 118, dbms: 'oracle', text: "What does ORA-00904: invalid identifier mean? It means your query is trying to reference a database developer who has already resigned." },
+  { id: 119, dbms: 'oracle', text: "Why did the DBA refuse to play hide-and-seek? Because the Oracle Optimizer would always choose a full tablespace scan anyway." },
+  { id: 120, dbms: 'oracle', text: "Why do Oracle DBAs prefer SQL*Plus? Because it's the only command line tool that doesn't have enough graphics to crash their terminal." },
 
-  // --- PostgreSQL (10 jokes) ---
+  // --- PostgreSQL (15 jokes) ---
   { id: 81, dbms: 'postgresql', text: "Why did the PostgreSQL database feel so clean? Because it was VACUUMed twice today." },
   { id: 82, dbms: 'postgresql', text: "Why do PostgreSQL developers love MVCC? They enjoy having multiple versions of the truth." },
   { id: 83, dbms: 'postgresql', text: "Why did the PostgreSQL elephant mascot get promoted? It had an excellent memory for queries." },
@@ -100,8 +140,13 @@ export const JOKES: Joke[] = [
   { id: 88, dbms: 'postgresql', text: "Why did the PostgreSQL index get deleted? It wasn't being used by the query planner." },
   { id: 89, dbms: 'postgresql', text: "Why did the PostgreSQL sequence fail? It ran out of numbers." },
   { id: 90, dbms: 'postgresql', text: "Why did the PostgreSQL database go to the doctor? It had a bad connection pool." },
+  { id: 141, dbms: 'postgresql', text: "Why did the PostgreSQL query plan change suddenly? Because the table statistics had a mid-life crisis after the 1,000th insert." },
+  { id: 142, dbms: 'postgresql', text: "Why is pg_dump the most popular backup tool? Because it's the only PostgreSQL command that doesn't require a PhD in vacuum theory to run." },
+  { id: 143, dbms: 'postgresql', text: "How does PostgreSQL handle a lock conflict? It creates another version of the row and tells you both are correct. Long live MVCC!" },
+  { id: 144, dbms: 'postgresql', text: "Why did the PostgreSQL elephant mascot get a cold? Because someone left the WAL segment open to the draft." },
+  { id: 145, dbms: 'postgresql', text: "What is a PostgreSQL DBA's favorite song? 'Vacuum, Baby, Vacuum' by the Autovacuum Daemon." },
 
-  // --- MongoDB (10 jokes) ---
+  // --- MongoDB (15 jokes) ---
   { id: 91, dbms: 'mongodb', text: "Why did the MongoDB developer get lost? Because they couldn't find any joins." },
   { id: 92, dbms: 'mongodb', text: "Why do MongoDB developers love schema-less databases? They enjoy the freedom of writing whatever they want." },
   { id: 93, dbms: 'mongodb', text: "Why did the MongoDB database crash? It tried to shard a collection by a field that didn't exist." },
@@ -111,5 +156,10 @@ export const JOKES: Joke[] = [
   { id: 97, dbms: 'mongodb', text: "Why did the MongoDB shard key fail? It wasn't unique enough." },
   { id: 98, dbms: 'mongodb', text: "Why did the MongoDB database get a cold? It was left in the draft of a replica set failover." },
   { id: 99, dbms: 'mongodb', text: "Why did the MongoDB developer get a ticket? They were caught speeding through a collection scan." },
-  { id: 100, dbms: 'mongodb', text: "Why did the MongoDB sequence fail? It didn't have one." }
+  { id: 100, dbms: 'mongodb', text: "Why did the MongoDB sequence fail? It didn't have one." },
+  { id: 146, dbms: 'mongodb', text: "Why did the MongoDB developer fail the database certification? They wrote a brilliant query but forgot to save the schema." },
+  { id: 147, dbms: 'mongodb', text: "Why do MongoDB developers hate tables? Because they prefer their data like their rooms—messy, schema-less, and full of documents they can never find." },
+  { id: 148, dbms: 'mongodb', text: "Why did the MongoDB query get lost? It tried to find an index on a field that was spelled differently in three different documents." },
+  { id: 149, dbms: 'mongodb', text: "How do you know when your MongoDB shard key is bad? When 99% of your data lives on a single node and the other nodes are completely idle." },
+  { id: 150, dbms: 'mongodb', text: "Why did the document database go to the party? To get nested inside a bigger array." }
 ];

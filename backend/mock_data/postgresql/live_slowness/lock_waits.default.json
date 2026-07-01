@@ -1,0 +1,11 @@
+{
+  "step_id": "lock_waits",
+  "step_description": "Lock contention and blocking transactions",
+  "columns": ["blocked_pid", "blocked_query", "blocking_pid", "blocking_query", "lock_type"],
+  "rows": [
+    [10246, "SELECT balance FROM accounts WHERE id = 42 FOR UPDATE;", 10245, "UPDATE accounts SET balance = balance - 100 WHERE id = 42;", "row shareLock"],
+    [10247, "SELECT SUM(balance) FROM accounts;", 10245, "UPDATE accounts SET balance = balance - 100 WHERE id = 42;", "exclusiveLock"]
+  ],
+  "row_count": 2,
+  "narrative_hint": "[DEMO CONTEXT] Lock wait analysis confirms PID 10245 is the head blocker. It holds an exclusive lock on the `accounts` table/row while running an uncommitted update, blocking both the row lock update and the reporting summary query. Checking index usage next to verify if table scans are amplifying locks."
+}

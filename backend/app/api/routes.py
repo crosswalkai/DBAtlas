@@ -286,7 +286,7 @@ async def get_session(
         "steps_skipped": session.steps_skipped,
         "checkpoint_log": [entry.model_dump() for entry in session.checkpoint_log],
         "analysis": session.final_analysis.model_dump() if session.final_analysis else None,
-        "created_at": session.created_at.isoformat(),
+        "created_at": session.created_at.isoformat() + "Z",
         "server_name": session.server_name,
         "ticket_number": session.ticket_number,
         "question": session.question,
@@ -310,7 +310,7 @@ async def list_sessions(dba_uid: str = Depends(get_current_user)):
                 "ticket_number": s.ticket_number,
                 "playbook_id": s.playbook.id,
                 "severity": s.final_analysis.severity if s.final_analysis else None,
-                "created_at": s.created_at.isoformat(),
+                "created_at": s.created_at.isoformat() + "Z",
             })
     return {"sessions": sessions, "count": len(sessions)}
 

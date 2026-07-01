@@ -1,0 +1,12 @@
+{
+  "step_id": "index_usage",
+  "step_description": "Index scans vs sequential scans per table",
+  "columns": ["relname", "seq_scan", "seq_tup_read", "idx_scan", "idx_tup_fetch"],
+  "rows": [
+    ["accounts", 8540, 12048502, 145, 1204],
+    ["customers", 12, 12450, 45201, 145201],
+    ["orders", 24, 85402, 120452, 985402]
+  ],
+  "row_count": 3,
+  "narrative_hint": "[DEMO CONTEXT] The `accounts` table shows extremely high sequential scans (8,540 scans reading 12M tuples) compared to index scans (only 145). This indicates update and lookup filters on `accounts` are triggering full table scans, holding locks significantly longer and causing cascading blocks."
+}

@@ -19,6 +19,12 @@ interface Scenario {
 const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scenario[]> = {
   sqlserver: [
     {
+      label: "Live Slowness Triage (SS-0)",
+      question: "Identify why the database is currently sluggish. What active requests, waits, and blocking session chains are dominating?",
+      server: "SQLPROD-02",
+      ticket: "INC0032871"
+    },
+    {
       label: "Plan Regression (SS-1)",
       question: "Our main catalog query is running extremely slow since last night's maintenance. Are we hitting a plan regression?",
       server: "SQLPROD-02",
@@ -59,10 +65,16 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
   ],
   postgresql: [
     {
-      label: "Live Triage (PG-1)",
+      label: "Live Lock Contention (PG-1)",
       question: "Check for any active transactions blocking our update queries on the customer table. Are there any locks?",
       server: "PG-DB-01",
       ticket: "INC0022871"
+    },
+    {
+      label: "Live Slowness Triage (PG-2)",
+      question: "Triage active locks, blocking queries, and sequential scan bottlenecks causing performance degradation.",
+      server: "PG-DB-01",
+      ticket: "INC0022872"
     }
   ],
   mongodb: [
@@ -71,13 +83,19 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
       question: "Check current active operations. Are we having slow writes or long-running collection scans on the catalog database?",
       server: "MONGO-01",
       ticket: "INC0032871"
+    },
+    {
+      label: "Resource Profiling (MG-2)",
+      question: "Identify collections with high storage sizes, index overhead, and operation write latencies.",
+      server: "MONGO-01",
+      ticket: "INC0032872"
     }
   ]
 };
 
 export function InputForm({ onSubmit, loading, onNavigate }: Props) {
-  const [serverName, setServerName] = useState('PRODDB-ORA-01');
-  const [ticketNumber, setTicketNumber] = useState('INC0042871');
+  const [serverName, setServerName] = useState('');
+  const [ticketNumber, setTicketNumber] = useState('');
   const [question, setQuestion] = useState('Troubleshoot what is slowing down this server right now');
   const [mode, setMode] = useState<SessionMode>('interactive');
   const [showManual, setShowManual] = useState(false);
@@ -152,8 +170,11 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
               style={{ height: 52, width: 'auto' }}
             />
           </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.03em', marginBottom: 16, textTransform: 'uppercase' }}>
-            Database Agentic Troubleshooting Advisor
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.03em', marginBottom: 16 }}>
+            <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>D</span>ata<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>b</span>ase{' '}
+            <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>A</span>gentic{' '}
+            <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>T</span>roub<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>l</span>eshooting{' '}
+            <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>A</span>dvi<span style={{ textDecoration: 'underline', textDecorationColor: 'var(--brand-teal)' }}>s</span>or
           </div>
           <h1 style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             New diagnostic session

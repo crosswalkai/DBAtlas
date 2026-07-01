@@ -1,0 +1,12 @@
+{
+  "step_id": "active_queries",
+  "step_description": "Active connections and running queries",
+  "columns": ["pid", "usename", "query", "state", "duration_seconds"],
+  "rows": [
+    [10245, "app_user", "UPDATE accounts SET balance = balance - 100 WHERE id = 42;", "active", 45],
+    [10246, "app_user", "SELECT balance FROM accounts WHERE id = 42 FOR UPDATE;", "active", 42],
+    [10247, "reporting", "SELECT SUM(balance) FROM accounts;", "active", 12]
+  ],
+  "row_count": 3,
+  "narrative_hint": "[DEMO CONTEXT] Active queries show multiple connections attempting to acquire update locks on the same row in `accounts` table (id = 42) for over 40 seconds. This indicates transaction blocking. Checking lock waits next is critical to identify the head blocker transaction."
+}

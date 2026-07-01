@@ -2,59 +2,75 @@
   "id": "postgresql-live-slowness-triage",
   "dbms": "postgresql",
   "intent_category": "live_triage",
-  "intent_tags": ["slow", "slowness", "sluggish", "performance", "now", "current", "triage", "troubleshoot", "locks", "waiting", "idle in transaction"],
+  "intent_tags": [
+    "slow",
+    "slowness",
+    "lock",
+    "blocking",
+    "current",
+    "live",
+    "triage",
+    "active"
+  ],
   "title": "PostgreSQL Live Slowness Triage",
-  "description": "Identify active queries, locks, and wait events causing current PostgreSQL slowness",
-  "entry_step": "pg_active_summary",
-  "alternate_playbooks": ["postgresql-top-consumers"],
+  "description": "Triage active locks, blocking queries, and resource consumption bottlenecks in PostgreSQL",
+  "entry_step": "active_queries",
+  "alternate_playbooks": [
+    "postgresql-top-consumers"
+  ],
   "max_steps": 5,
   "version": 1,
   "author": "A. Sharma",
   "steps": {
-    "pg_active_summary": {
-      "step_id": "pg_active_summary",
-      "description": "Active queries and wait events from pg_stat_activity",
-      "script_ref": "scripts/postgresql/pg_active_summary.sql",
-      "mock_data_key": "postgresql/live_slowness/pg_active_summary.default.json",
+    "active_queries": {
+      "step_id": "active_queries",
+      "description": "Active connections and running queries",
+      "script_ref": "scripts/postgresql/active_queries.sql",
+      "mock_data_key": "postgresql/live_slowness/active_queries.default.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["pg_lock_contention", "pg_slow_queries"],
+      "typical_next": [
+        "lock_waits"
+      ],
       "interactive_hints": {
-        "pg_lock_contention": "Run when queries show 'Lock' wait events or 'idle in transaction' states — maps the lock chain",
-        "pg_slow_queries": "Run to identify the specific queries consuming the most time across the cluster",
-        "stop": "Stop here and generate the final analysis with results gathered so far"
+        "lock_waits": "Run to check active locks and query blockings",
+        "stop": "Stop here and analyze active connection metrics"
       },
       "safe_to_run_first": true,
-      "max_rows": 25
-    },
-    "pg_lock_contention": {
-      "step_id": "pg_lock_contention",
-      "description": "Lock contention and blocking query chains",
-      "script_ref": "scripts/postgresql/pg_lock_contention.sql",
-      "mock_data_key": "postgresql/live_slowness/pg_lock_contention.default.json",
-      "parameters": [],
-      "result_format": "tabular",
-      "typical_next": ["stop"],
-      "interactive_hints": {
-        "pg_slow_queries": "Run alongside lock analysis if you suspect the blocking query is also a slow query",
-        "stop": "Stop here and generate the final analysis with results gathered so far"
-      },
-      "safe_to_run_first": false,
       "max_rows": 20
     },
-    "pg_slow_queries": {
-      "step_id": "pg_slow_queries",
-      "description": "Top slow queries from pg_stat_statements",
-      "script_ref": "scripts/postgresql/pg_slow_queries.sql",
-      "mock_data_key": "postgresql/live_slowness/pg_slow_queries.default.json",
+    "lock_waits": {
+      "step_id": "lock_waits",
+      "description": "Lock contention and blocking transactions",
+      "script_ref": "scripts/postgresql/lock_waits.sql",
+      "mock_data_key": "postgresql/live_slowness/lock_waits.default.json",
       "parameters": [],
       "result_format": "tabular",
-      "typical_next": ["stop"],
+      "typical_next": [
+        "index_usage"
+      ],
       "interactive_hints": {
-        "stop": "Stop here and generate the final analysis with results gathered so far"
+        "index_usage": "Run to check index scan effectiveness and scan rates",
+        "stop": "Stop here and analyze lock details"
       },
       "safe_to_run_first": false,
       "max_rows": 15
+    },
+    "index_usage": {
+      "step_id": "index_usage",
+      "description": "Index scans vs sequential scans per table",
+      "script_ref": "scripts/postgresql/index_usage.sql",
+      "mock_data_key": "postgresql/live_slowness/index_usage.default.json",
+      "parameters": [],
+      "result_format": "tabular",
+      "typical_next": [
+        "stop"
+      ],
+      "interactive_hints": {
+        "stop": "Stop here and generate the final diagnostic report"
+      },
+      "safe_to_run_first": false,
+      "max_rows": 20
     }
   }
 }
