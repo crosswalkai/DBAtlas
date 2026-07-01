@@ -524,8 +524,8 @@ export function DiagnosticReport({
                             AI Assessment & Proposed Routing
                           </div>
                           <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                            <strong>Recommendation:</strong> {entry.claude_recommendation?.routing_decision || entry.routing_decision} 
-                            {entry.claude_recommendation?.next_step && ` (Next Step: ${entry.claude_recommendation.next_step})`}
+                            <strong>Recommendation:</strong> {entry.routing_decision} 
+                            {entry.claude_recommendation && ` (Target: ${entry.claude_recommendation})`}
                             <br />
                             <strong>Rationale:</strong> {entry.interactive_summary || entry.claude_assessment}
                           </div>

@@ -30,6 +30,9 @@ export const submitCheckpointDecision = (
 export const getSession = (sessionId: string) =>
   api.get<SessionDetail>(`/session/${sessionId}`).then(r => r.data);
 
+export const stopSession = (sessionId: string) =>
+  api.post(`/diagnose/${sessionId}/stop`).then(r => r.data);
+
 export const listPlaybooks = (dbms?: string) =>
   api.get<{ playbooks: PlaybookSummary[] }>('/playbooks', { params: { dbms } })
     .then(r => r.data.playbooks);

@@ -315,6 +315,27 @@ async def list_sessions(dba_uid: str = Depends(get_current_user)):
     return {"sessions": sessions, "count": len(sessions)}
 
 
+@router.post("/diagnose/{session_id}/stop")
+async def stop_session(session_id: str, dba_uid: str = Depends(get_current_user)):
+    """Manually stop/abort an active diagnostic session."""
+    session = await session_store.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if settings.use_auth and session.dba_uid != dba_uid:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this session")
+    
+    # Transition to completed / stopped state
+    session.state = "COMPLETED"
+    session.touch()
+    
+    # Push final termination events to client SSE queue
+    await session.sse_queue.put({"event": "diagnose_stopped", "data": {"session_id": session_id, "reason": "Manually stopped by user"}})
+    await session.sse_queue.put({"event": "close", "data": {}})
+    
+    logger.info(f"Session {session_id} manually stopped by user.")
+    return {"status": "success", "message": "Session stopped successfully"}
+
+
 @router.get("/playbooks")
 async def list_playbooks(
     dbms: Optional[str] = None,

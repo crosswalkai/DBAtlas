@@ -595,7 +595,7 @@ function SideNav({
 
 // ── Main app ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const { state, run, submitDecision, reset, load } = useSession();
+  const { state, run, submitDecision, reset, load, stop } = useSession();
   const { phase } = state;
   const [activeView, setActiveView] = useState<ActiveView>('diagnose');
   const [historyRefresh, setHistoryRefresh] = useState(0);
@@ -633,6 +633,36 @@ export default function App() {
   // Elapsed timer — runs during execution/evaluation, pauses at pending_approval
   const stepRunning = phase === 'executing' || phase === 'evaluating' || phase === 'classifying' || phase === 'analyzing';
   const { elapsed, reset: resetElapsed } = useElapsedTimer(stepRunning);
+
+  // Step execution client-side auto-timeout (2 minutes limit)
+  const lastStepIdRef = useRef<string | null>(null);
+  const stepStartTimestampRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (stepRunning) {
+      const currentStepId = state.currentStep || 'init';
+      if (lastStepIdRef.current !== currentStepId) {
+        lastStepIdRef.current = currentStepId;
+        stepStartTimestampRef.current = Date.now();
+      }
+
+      const timerId = setInterval(() => {
+        if (stepStartTimestampRef.current) {
+          const runTimeSec = Math.floor((Date.now() - stepStartTimestampRef.current) / 1000);
+          if (runTimeSec >= 120) {
+            console.warn(`Step ${currentStepId} timed out after 120s. Stopping session.`);
+            alert(`Step execution timeout: Step has taken over 2 minutes. Stopping session.`);
+            stop();
+          }
+        }
+      }, 1000);
+
+      return () => clearInterval(timerId);
+    } else {
+      lastStepIdRef.current = null;
+      stepStartTimestampRef.current = null;
+    }
+  }, [stepRunning, state.currentStep, stop]);
 
   // Track per-step timing
   const [stepElapsed, setStepElapsed] = useState<Record<string, { active: number; wait: number }>>({});
@@ -939,7 +969,7 @@ export default function App() {
                           {state.mode === 'interactive' ? '● Interactive' : '▶ Auto'}
                         </Badge>
                         {isRunning && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted)', fontSize: 11 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 11 }}>
                             <Spinner size={11} />
                             <span>{phaseLabel(phase)}</span>
                             {elapsed > 0 && (
@@ -952,6 +982,20 @@ export default function App() {
                                 {formatElapsed(elapsed)}
                               </span>
                             )}
+                            <button
+                              onClick={stop}
+                              title="Stop Diagnostic Run"
+                              style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                border: '1px solid var(--danger-border)', background: 'var(--danger-light)',
+                                borderRadius: 'var(--radius-sm)', width: 22, height: 22, cursor: 'pointer',
+                                transition: 'all 0.15s', fontSize: 12, padding: 0, outline: 'none',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'var(--border)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'var(--danger-light)'}
+                            >
+                              🛑
+                            </button>
                           </div>
                         )}
                         {isComplete && state.analysis && <SeverityBadge severity={state.analysis.severity} />}

@@ -2,7 +2,7 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   startDiagnose, openSseStream,
-  submitCheckpointDecision, getSession,
+  submitCheckpointDecision, getSession, stopSession,
 } from '../api/client';
 import type {
   DiagnoseRequest, SessionMode, SessionState,
@@ -277,7 +277,33 @@ export function useSession() {
     }
   }, []);
 
-  return { state, run, submitDecision, reset, load };
+  const stop = useCallback(async () => {
+    if (!state.sessionId) return;
+    try {
+      await stopSession(state.sessionId);
+    } catch (e) {
+      console.error('Failed to stop session on backend:', e);
+    }
+    if (esSrcRef.current) {
+      esSrcRef.current.close();
+      esSrcRef.current = null;
+    }
+    try {
+      const session = await getSession(state.sessionId);
+      setState(prev => ({
+        ...prev,
+        phase: 'complete',
+        analysis: session.analysis || null,
+        checkpointLog: session.checkpoint_log,
+        stepsExecuted: session.steps_executed,
+        stepsSkipped: session.steps_skipped,
+      }));
+    } catch (err) {
+      setState(prev => ({ ...prev, phase: 'complete' }));
+    }
+  }, [state.sessionId]);
+
+  return { state, run, submitDecision, reset, load, stop };
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
