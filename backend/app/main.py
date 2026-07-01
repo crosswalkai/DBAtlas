@@ -30,6 +30,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"  Mock data:    {settings.use_mock_data}")
     logger.info(f"  Log level:    {settings.log_level}")
 
+    # Production auth is middleware/FastAPI dependency driven, 
+    # but we can do some basic config checks here.
+    if settings.use_auth and not settings.use_mock_data:
+        logger.info("Starting in secure mode with real database connections.")
+
     # Background task: clean up stale sessions every 10 minutes
     async def cleanup_task():
         while True:

@@ -389,6 +389,9 @@ class CheckpointLoop:
                 "severity": session.final_analysis.severity if session.final_analysis else "medium",
             })
 
+            # Persist session history
+            await session_store.persist(session)
+
             # Signal SSE stream to close
             await session.sse_queue.put(None)
             return response
@@ -401,6 +404,10 @@ class CheckpointLoop:
                 "message": str(e),
                 "recoverable": False,
             })
+            
+            # Persist session history
+            await session_store.persist(session)
+            
             await session.sse_queue.put(None)
             raise
 

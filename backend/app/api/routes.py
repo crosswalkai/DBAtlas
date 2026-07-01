@@ -262,6 +262,26 @@ async def submit_checkpoint_decision(
     return {"status": "accepted", "dba_decision": body.dba_decision}
 
 
+@router.post("/diagnose/{session_id}/stop")
+async def stop_session(
+    session_id: str,
+    dba_uid: str = Depends(get_current_user),
+):
+    """Force stop a session."""
+    session = await session_store.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if settings.use_auth and session.dba_uid != dba_uid:
+        raise HTTPException(status_code=403, detail="Not your session")
+
+    session.state = "ERROR"
+    if session.pending_event:
+        session.pending_event.set()
+    await session_store.persist(session)
+    return {"status": "stopped"}
+
+
 @router.get("/session/{session_id}")
 async def get_session(
     session_id: str,
@@ -295,24 +315,90 @@ async def get_session(
 
 @router.get("/sessions")
 async def list_sessions(dba_uid: str = Depends(get_current_user)):
-    """List active sessions for the current user."""
-    all_ids = await session_store.list_active()
-    sessions = []
-    for sid in all_ids:
+    """List active and persisted sessions for the current user."""
+    # First get persisted data
+    persisted = await session_store.list_all_persisted()
+    
+    # Also get active sessions in memory not yet persisted, or newer versions
+    all_active_ids = await session_store.list_active()
+    
+    # Merge them (active takes precedence)
+    session_map = {p["session_id"]: p for p in persisted}
+    
+    for sid in all_active_ids:
         s = await session_store.get(sid)
-        if s and (not settings.use_auth or s.dba_uid == dba_uid):
+        if s:
+            session_map[sid] = s.to_dict()
+            
+    sessions = []
+    for s_dict in session_map.values():
+        if not settings.use_auth or s_dict.get("dba_uid") == dba_uid:
+            final_analysis = s_dict.get("final_analysis")
+            severity = final_analysis.get("severity") if final_analysis else None
+            
             sessions.append({
-                "session_id": s.session_id,
-                "state": s.state,
-                "mode": s.mode,
-                "dbms": s.dbms,
-                "server_name": s.server_name,
-                "ticket_number": s.ticket_number,
-                "playbook_id": s.playbook.id,
-                "severity": s.final_analysis.severity if s.final_analysis else None,
-                "created_at": s.created_at.isoformat() + "Z",
+                "session_id": s_dict["session_id"],
+                "state": s_dict["state"],
+                "mode": s_dict["mode"],
+                "dbms": s_dict["dbms"],
+                "server_name": s_dict["server_name"],
+                "ticket_number": s_dict["ticket_number"],
+                "playbook_id": s_dict["playbook_id"],
+                "severity": severity,
+                "created_at": s_dict["created_at"] if s_dict["created_at"].endswith("Z") else s_dict["created_at"] + "Z",
             })
+            
     return {"sessions": sessions, "count": len(sessions)}
+
+
+@router.get("/analytics")
+async def get_analytics(dba_uid: str = Depends(get_current_user)):
+    """Get aggregated analytics from session history."""
+    # First get persisted data
+    persisted = await session_store.list_all_persisted()
+    all_active_ids = await session_store.list_active()
+    
+    session_map = {p["session_id"]: p for p in persisted}
+    for sid in all_active_ids:
+        s = await session_store.get(sid)
+        if s:
+            session_map[sid] = s.to_dict()
+            
+    playbook_counts = {}
+    server_counts = {}
+    dbms_map = {}
+    outcomes = {"success": 0, "failed": 0, "in_progress": 0}
+    
+    for s in session_map.values():
+        # Playbooks
+        pb = s.get("playbook_id")
+        if pb:
+            playbook_counts[pb] = playbook_counts.get(pb, 0) + 1
+            
+        # Servers
+        server = s.get("server_name")
+        if server:
+            server_counts[server] = server_counts.get(server, 0) + 1
+            dbms_map[server] = s.get("dbms", "unknown")
+            
+        # Outcomes
+        state = s.get("state")
+        if state == "COMPLETE":
+            outcomes["success"] += 1
+        elif state in ("ERROR", "FAILED"):
+            outcomes["failed"] += 1
+        else:
+            outcomes["in_progress"] += 1
+            
+    top_playbooks = [{"name": k, "count": v} for k, v in sorted(playbook_counts.items(), key=lambda x: x[1], reverse=True)[:5]]
+    top_servers = [{"name": k, "dbms": dbms_map[k], "count": v} for k, v in sorted(server_counts.items(), key=lambda x: x[1], reverse=True)[:5]]
+    
+    return {
+        "top_playbooks": top_playbooks,
+        "top_servers": top_servers,
+        "outcomes": outcomes,
+        "total_sessions": len(session_map)
+    }
 
 
 @router.post("/diagnose/{session_id}/stop")
@@ -327,6 +413,9 @@ async def stop_session(session_id: str, dba_uid: str = Depends(get_current_user)
     # Transition to completed / stopped state
     session.state = "COMPLETED"
     session.touch()
+    
+    # Unblock any pending DBA decision waits in the checkpoint loop
+    session.dba_decision_event.set()
     
     # Push final termination events to client SSE queue
     await session.sse_queue.put({"event": "diagnose_stopped", "data": {"session_id": session_id, "reason": "Manually stopped by user"}})

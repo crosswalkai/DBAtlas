@@ -10,8 +10,9 @@ import { Badge, Spinner, SeverityBadge, Button } from './components/ui';
 import { JOKES } from './utils/jokes';
 import { ChatWidget } from './components/ChatWidget';
 import { AboutView } from './components/AboutView';
+import { AdminPanel } from './components/AdminPanel';
 
-type ActiveView = 'diagnose' | 'history' | 'about';
+type ActiveView = 'diagnose' | 'history' | 'about' | 'admin';
 
 // ── Elapsed timer hook ────────────────────────────────────────────────────────
 function useElapsedTimer(running: boolean) {
@@ -260,8 +261,8 @@ function TicTacToeWidget({ disabled = false }: { disabled?: boolean }) {
       pointerEvents: disabled ? 'none' : 'auto',
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginRight: 2 }}>
-        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Waiting Game
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
+          While you wait
         </span>
         <span style={{ fontSize: 10, fontWeight: 600, color: winner ? 'var(--accent)' : 'var(--text-secondary)', minWidth: 65 }}>
           {winner === 'user' && 'You win! 🎉'}
@@ -596,6 +597,26 @@ function SideNav({
       </button>
 
       <div style={{ flex: 1 }} />
+      
+      {/* Admin button */}
+      <button
+        onClick={() => setActiveView('admin')}
+        title="Admin Analytics"
+        style={{
+          width: 40, height: 40, borderRadius: 'var(--radius)',
+          border: 'none', cursor: 'pointer', display: 'flex',
+          flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 2, background: activeView === 'admin' ? 'var(--accent-light)' : 'transparent',
+          color: activeView === 'admin' ? 'var(--accent)' : 'var(--text-muted)',
+          transition: 'all 0.15s',
+          marginBottom: 10,
+        }}
+      >
+        <span style={{ fontSize: 16, lineHeight: 1 }}>📊</span>
+        <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
+          Admin
+        </span>
+      </button>
 
       {/* Mock data indicator */}
       <div
@@ -664,13 +685,17 @@ export default function App() {
 
   // Step execution client-side auto-timeout (2 minutes limit)
   const lastStepIdRef = useRef<string | null>(null);
+  const lastPhaseRef = useRef<string | null>(null);
   const stepStartTimestampRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (stepRunning) {
       const currentStepId = state.currentStep || 'init';
-      if (lastStepIdRef.current !== currentStepId) {
+      const currentPhase = state.phase;
+      
+      if (lastStepIdRef.current !== currentStepId || lastPhaseRef.current !== currentPhase) {
         lastStepIdRef.current = currentStepId;
+        lastPhaseRef.current = currentPhase;
         stepStartTimestampRef.current = Date.now();
       }
 
@@ -689,9 +714,10 @@ export default function App() {
       return () => clearInterval(timerId);
     } else {
       lastStepIdRef.current = null;
+      lastPhaseRef.current = null;
       stepStartTimestampRef.current = null;
     }
-  }, [stepRunning, state.currentStep, stop]);
+  }, [stepRunning, state.currentStep, state.phase, stop]);
 
   // Track per-step timing
   const [stepElapsed, setStepElapsed] = useState<Record<string, { active: number; wait: number }>>({});
@@ -977,6 +1003,11 @@ export default function App() {
           {/* About view */}
           {activeView === 'about' && (
             <AboutView />
+          )}
+
+          {/* Admin view */}
+          {activeView === 'admin' && (
+            <AdminPanel />
           )}
 
           {/* Diagnostic view */}
