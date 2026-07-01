@@ -39,7 +39,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>
-              DbAxis · DBA Copilot
+              DbAxis · AI Partner
             </span>
           </div>
           <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />

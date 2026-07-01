@@ -195,9 +195,10 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
       gap: 32,
       flexDirection: 'row',
       flexWrap: 'wrap',
+      overflowY: 'auto'
     }}>
       {/* Main input form */}
-      <div style={{ width: '100%', maxWidth: 560 }}>
+      <div style={{ width: '100%', maxWidth: 560, margin: 'auto' }}>
         {/* Header */}
         <div style={{ marginBottom: 20, textAlign: 'center' }}>
           <div style={{ marginBottom: 2 }}>

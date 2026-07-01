@@ -325,11 +325,13 @@ function TicTacToeWidget({ disabled = false }: { disabled?: boolean }) {
 function JokesWidget({ dbms }: { dbms: string }) {
   const filteredJokes = JOKES.filter(j => j.dbms === dbms);
   const [clickCount, setClickCount] = useState(0);
+  const [showSoftPopup, setShowSoftPopup] = useState(false);
   const [jokeIndex, setJokeIndex] = useState(() => Math.floor(Math.random() * (filteredJokes.length || 1)));
 
   const handleNextJoke = () => {
-    if (clickCount >= 2) {
-      alert("Sorry but Pablo says you need to get back to work 😏");
+    if (clickCount >= 3) {
+      setShowSoftPopup(true);
+      setTimeout(() => setShowSoftPopup(false), 3000);
       return;
     }
     setClickCount(prev => prev + 1);
@@ -356,7 +358,28 @@ function JokesWidget({ dbms }: { dbms: string }) {
         </div>
       </div>
 
-      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 180, justifyContent: 'space-between' }}>
+      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 180, justifyContent: 'space-between', position: 'relative' }}>
+        
+        {/* Soft Popup Overlay */}
+        {showSoftPopup && (
+          <div className="fade-in" style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(3px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 24, zIndex: 10, textAlign: 'center',
+            borderRadius: '0 0 var(--radius-lg) var(--radius-lg)'
+          }}>
+            <div style={{
+              background: 'var(--warning-light)', color: 'var(--warning)',
+              border: '1px solid var(--warning-border)', borderRadius: 'var(--radius)',
+              padding: '12px 16px', fontSize: 13, fontWeight: 500,
+              boxShadow: 'var(--shadow-md)'
+            }}>
+              Sorry but Pablo says you need to get back to work 😏
+            </div>
+          </div>
+        )}
+
         {joke ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6, fontStyle: 'italic' }}>
@@ -393,11 +416,12 @@ function JokesWidget({ dbms }: { dbms: string }) {
 function LoginScreen({ onCancel, dbms }: { onCancel: () => void; dbms: string }) {
   return (
     <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'row',
-      alignItems: 'center', justifyContent: 'center',
-      background: 'var(--surface-0)', gap: 40, padding: '0 40px',
-      flexWrap: 'wrap',
+      height: '100vh', display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+      alignItems: 'center', gap: 40, padding: '0 40px',
+      background: 'var(--surface-0)',
     }}>
+      {/* Left spacer for perfect centering */}
+      <div />
       <div className="fade-in" style={{
         width: 360, background: 'var(--surface-1)',
         border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
@@ -486,7 +510,9 @@ function LoginScreen({ onCancel, dbms }: { onCancel: () => void; dbms: string })
       </div>
 
       {/* Right column: Jokes widget */}
-      <JokesWidget dbms={dbms} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <JokesWidget dbms={dbms} />
+      </div>
     </div>
   );
 }
@@ -1242,6 +1268,7 @@ export default function App() {
                           playbookId={state.playbookId}
                           mode={state.mode}
                           stepElapsed={stepElapsed}
+                          created_at={state.created_at}
                         />
                       )}
 

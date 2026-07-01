@@ -43,12 +43,13 @@ export interface SessionState2 {
   serverName: string;
   ticketNumber: string;
   question: string;
+  created_at: string; // ISO timestamp of session creation
 }
 
 const initialState: SessionState2 = {
   sessionId: null,
   phase: 'idle',
-  mode: 'interactive',
+  mode: 'auto',
   dbms: null,
   playbookId: null,
   playbookTitle: null,
@@ -66,6 +67,7 @@ const initialState: SessionState2 = {
   serverName: '',
   ticketNumber: '',
   question: '',
+  created_at: '', // will be populated from backend
 };
 
 export function useSession() {
@@ -102,6 +104,7 @@ export function useSession() {
         playbookTitle: d.playbook_title,
         intentCategory: d.intent_category,
         phase: 'executing',
+        created_at: d.created_at || new Date().toISOString(),
       });
     });
 
@@ -267,6 +270,7 @@ export function useSession() {
         serverName: session.server_name || '',
         ticketNumber: session.ticket_number || '',
         question: session.question || '',
+        created_at: session.created_at || ''
       });
     } catch (e: any) {
       setState(prev => ({

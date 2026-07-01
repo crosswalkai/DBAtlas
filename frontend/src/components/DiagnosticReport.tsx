@@ -13,6 +13,7 @@ interface Props {
   playbookId: string | null;
   mode: string;
   stepElapsed?: Record<string, { active: number; wait: number }>;
+  created_at: string; // ISO timestamp of session creation
 }
 
 function CopySmallButton({ text }: { text: string }) {
@@ -73,7 +74,7 @@ function CopyAllButton({ texts, label = "Copy All" }: { texts: string[]; label?:
 
 export function DiagnosticReport({
   sessionId,
-  analysis, checkpointLog, serverName, ticketNumber, playbookId, mode, stepElapsed,
+  analysis, checkpointLog, serverName, ticketNumber, playbookId, mode, stepElapsed, created_at,
 }: Props) {
   const [activeTab, setActiveTab] = React.useState<'report' | 'audit'>('report');
   const [showCheckpointLog, setShowCheckpointLog] = React.useState(false);
@@ -84,6 +85,8 @@ export function DiagnosticReport({
   const [sharing, setSharing] = React.useState(false);
   const [shareSuccess, setShareSuccess] = React.useState('');
   const [shareError, setShareError] = React.useState('');
+  const [hoverShare, setHoverShare] = React.useState(false);
+  const [hoverDownload, setHoverDownload] = React.useState(false);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -168,21 +171,27 @@ export function DiagnosticReport({
                 <SeverityBadge severity={analysis.severity} />
                 <button
                   onClick={() => setShowShareModal(true)}
+                  onMouseEnter={() => setHoverShare(true)}
+                  onMouseLeave={() => setHoverShare(false)}
                   style={{
                     fontSize: 11, padding: '3px 8px',
                     background: 'var(--surface-1)',
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-sm)', cursor: 'pointer',
                     color: 'var(--text-muted)',
-                    fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+                    fontFamily: 'var(--font-sans)',
                     display: 'flex', alignItems: 'center', gap: 4,
                     outline: 'none',
+                    transform: hoverShare ? 'scale(1.13)' : 'scale(1)',
+                    transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s, border-color 0.2s',
                   }}
                 >
                   <span>✉</span>
                   <span>Share Report</span>
                 </button>
                 <button
+                  onMouseEnter={() => setHoverDownload(true)}
+                  onMouseLeave={() => setHoverDownload(false)}
                   onClick={() => {
                     const findingsHtml = analysis.key_findings.map(f => `<li>${f}</li>`).join('\n');
                     const actionsHtml = analysis.recommended_actions.map(a => `<li>${a}</li>`).join('\n');
@@ -245,14 +254,31 @@ export function DiagnosticReport({
                       </body>
                       </html>
                     `;
+                    let guidPart = 'session';
+                    if (sessionId) {
+                      const parts = sessionId.split('-');
+                      if (parts.length > 0 && parts[0]) {
+                        guidPart = parts[0];
+                      }
+                    }
 
+                    const fileName = `DBAtlas_DiagReport_${guidPart}.html`;
+                    console.log('Downloading report:', { sessionId, guidPart, fileName });
+
+                    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                    const blobUrl = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    link.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
-                    link.download = `DBAtlas_Report_${ticketNumber || 'Session'}_${sessionId.slice(0, 8)}.html`;
+                    link.style.display = 'none';
+                    link.href = blobUrl;
+                    link.setAttribute('download', fileName);
                     document.body.appendChild(link);
                     link.click();
-                    document.body.removeChild(link);
+                    setTimeout(() => {
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(blobUrl);
+                    }, 1000);
                   }}
+                  type="button"
                   title="Download HTML/PDF Report"
                   style={{
                     fontSize: 11, padding: '3px 8px',
@@ -260,12 +286,19 @@ export function DiagnosticReport({
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-sm)', cursor: 'pointer',
                     color: 'var(--text-muted)',
-                    fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+                    fontFamily: 'var(--font-sans)',
                     display: 'flex', alignItems: 'center', gap: 4,
                     outline: 'none',
+                    transform: hoverDownload ? 'scale(1.13)' : 'scale(1)',
+                    transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s, border-color 0.2s',
                   }}
                 >
-                  <span>📥</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <polyline points="9 15 12 18 15 15"/>
+                  </svg>
                 </button>
               </div>
             </div>

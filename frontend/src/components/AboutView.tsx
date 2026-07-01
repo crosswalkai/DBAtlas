@@ -16,7 +16,7 @@ export function AboutView() {
         <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: 'var(--brand-teal)' }}>About DBAtlas</h1>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: 500 }}>
-            Database Agentic Troubleshooting Advisor — DBA Copilot
+            Database Agentic Troubleshooting Advisor — AI Partner
           </p>
         </div>
 

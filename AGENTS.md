@@ -13,7 +13,7 @@ and a natural-language question. The system runs pre-approved diagnostic scripts
 uses Claude to evaluate results at each checkpoint, navigating a playbook graph to
 reach a root-cause diagnosis.
 
-Product full name: "DBAtlas - DBA Copilot"
+Product full name: "DBAtlas - AI Partner"
 Subtitle: "Database Agentic Troubleshooting Advisor"
 
 ---

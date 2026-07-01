@@ -1,4 +1,4 @@
-**DBA Copilot**
+**AI Partner**
 
 Database Agentic Troubleshooting Advisor
 
@@ -447,7 +447,7 @@ When a user logs out, the landing page uses a split-screen layout with the login
 
 | --- | --- | --- | --- | --- |
 | Element | Specification |
-| Product name | DBAtlas — DBA Copilot |
+| Product name | DBAtlas — AI Partner |
 | Subtitle | Database Agentic Troubleshooting Advisor |
 | Accent color | Blue (#2563EB) |
 | Operating-mode highlight | Orange (#C2540A on #FFF0E6) |

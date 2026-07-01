@@ -13,6 +13,7 @@ const SUGGESTIONS = [
   "What is the router-not-generator principle?",
   "How does Interactive Mode work?",
   "What SQL Server scenarios are available?",
+  "What Oracle scenarios are available?",
   "What comes after the demo?",
   "What does DBAtlas do?"
 ];
@@ -172,7 +173,20 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside the widget
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      if (widgetRef.current && !widgetRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [onClose]);
 
   // Auto-scroll to bottom when messages change or while loading
   useEffect(() => {
@@ -211,12 +225,12 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fade-in" style={{
+    <div ref={widgetRef} className="fade-in" style={{
       position: 'fixed',
-      bottom: 20,
-      left: 70, // Just to the right of the SideNav
-      width: 760, // Expanded by 100% (from 380px)
-      height: 550, // Slightly taller to fit layout well
+      bottom: isMaximized ? '5vh' : 20,
+      left: isMaximized ? '5vw' : 70, // Just to the right of the SideNav when not maximized
+      width: isMaximized ? '90vw' : 760, // Expanded by 100% (from 380px)
+      height: isMaximized ? '90vh' : 550, // Slightly taller to fit layout well
       background: 'var(--surface-1)',
       border: '1px solid var(--border)',
       borderRadius: 'var(--radius-lg)',
@@ -224,7 +238,8 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
       display: 'flex',
       flexDirection: 'column',
       zIndex: 1000,
-      overflow: 'hidden'
+      overflow: 'hidden',
+      transition: 'all 0.2s ease-in-out'
     }}>
       {/* Header */}
       <div style={{
@@ -239,7 +254,7 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
           <span>🤖</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Ask DBAtlas</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button 
             title="Clear conversation"
             onClick={() => setMessages([])} 
@@ -247,10 +262,19 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
             style={{
               background: 'none', border: 'none', cursor: messages.length === 0 ? 'default' : 'pointer',
               fontSize: 9.5, color: 'var(--text-muted)', opacity: messages.length === 0 ? 0.3 : 1,
-              marginRight: 14 // Fushed slightly left
             }}
           >
             🧹 Clear
+          </button>
+          <button 
+            title={isMaximized ? "Minimize" : "Maximize"}
+            onClick={() => setIsMaximized(!isMaximized)} 
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center'
+            }}
+          >
+            {isMaximized ? '🗗' : '🗖'}
           </button>
           <button onClick={onClose} style={{
             background: 'none', border: 'none', cursor: 'pointer',
