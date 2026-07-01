@@ -265,7 +265,6 @@ export function DiagnosticReport({
                     outline: 'none',
                   }}
                 >
-                  <span>PDF</span>
                   <span>📥</span>
                 </button>
               </div>

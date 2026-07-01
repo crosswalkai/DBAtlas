@@ -522,7 +522,7 @@ function SideNav({
           transition: 'all 0.15s',
         }}
       >
-        <span style={{ fontSize: 16, lineHeight: 1 }}>⚕</span>
+        <span style={{ fontSize: 16, lineHeight: 1 }}>🧰</span>
         <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
           Diagnostic
         </span>
@@ -563,7 +563,7 @@ function SideNav({
           marginTop: 10,
         }}
       >
-        <span style={{ fontSize: 16, lineHeight: 1 }}>🗂</span>
+        <span style={{ fontSize: 16, lineHeight: 1 }}>⏱️</span>
         <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
           History
         </span>
@@ -748,12 +748,12 @@ export default function App() {
           ) : (
             /* If on active diagnostic page */
             (activeView === 'diagnose' && !isIdle) ? (
-              <>
-                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 33, width: 'auto', flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', marginLeft: -4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 26, width: 'auto', flexShrink: 0 }} />
+                <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', letterSpacing: '0.02em', marginTop: -1 }}>
                   Database Agentic Troubleshooting Advisor
                 </span>
-              </>
+              </div>
             ) : (
               /* For other views (e.g. History) */
               <>

@@ -333,16 +333,17 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
         </div>
 
         <p style={{ textAlign: 'center', marginTop: 14, fontSize: 11, color: 'var(--text-faint)' }}>
-          Running against mock data · Auth disabled · Local dev mode
+          Running against mock data · Auth disabled · Dev mode
         </p>
       </div>
 
       {/* Demo Assistant Side Panel */}
       <div style={{
-        width: '100%', maxWidth: 400,
+        width: '100%', maxWidth: showAssistant ? 400 : 200,
         alignSelf: 'center',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'max-width 0.25s ease-in-out',
       }}>
         {/* Toggle Button */}
         <button

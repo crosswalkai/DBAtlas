@@ -28,6 +28,7 @@ export function SessionHistory({ onReopen }: Props) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
   // Email Sharing states
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -94,6 +95,12 @@ export function SessionHistory({ onReopen }: Props) {
     );
   });
 
+  const sortedSessions = [...filteredSessions].sort((a, b) => {
+    const tA = new Date(a.created_at).getTime();
+    const tB = new Date(b.created_at).getTime();
+    return sortDirection === 'desc' ? tB - tA : tA - tB;
+  });
+
   if (loading) return (
     <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
       Loading sessions...
@@ -116,61 +123,81 @@ export function SessionHistory({ onReopen }: Props) {
     <div style={{ padding: '16px 20px' }}>
       <SectionLabel>Session history</SectionLabel>
 
-      {/* Search Input */}
-      <div style={{ marginBottom: 12, position: 'relative' }}>
-        <input
-          type="text"
-          placeholder="Filter sessions..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '7px 10px 7px 30px',
-            fontSize: 12,
-            background: 'var(--surface-2)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            color: 'var(--text-primary)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-          }}
-        />
-        <span style={{
-          position: 'absolute',
-          left: 10,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          color: 'var(--text-faint)',
-          pointerEvents: 'none',
-          fontSize: 13
-        }}>🔍</span>
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
+      {/* Search & Sort Controls */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <input
+            type="text"
+            placeholder="Filter sessions..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
             style={{
-              position: 'absolute',
-              right: 8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-faint)',
+              width: '100%',
+              padding: '7px 10px 7px 30px',
               fontSize: 12,
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-sans)',
+              outline: 'none',
             }}
-          >
-            ✕
-          </button>
-        )}
+          />
+          <span style={{
+            position: 'absolute',
+            left: 10,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--text-faint)',
+            pointerEvents: 'none',
+            fontSize: 13
+          }}>🔍</span>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-faint)',
+                fontSize: 12,
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <button
+          onClick={() => setSortDirection(d => d === 'desc' ? 'asc' : 'desc')}
+          title={`Sort by time: ${sortDirection === 'desc' ? 'Newest First' : 'Oldest First'}`}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '4px 12px', background: 'var(--surface-1)',
+            border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+            cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12,
+            fontWeight: 500, outline: 'none', transition: 'all 0.15s',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          <span>⏱️</span>
+          <span>{sortDirection === 'desc' ? 'Newest First' : 'Oldest First'}</span>
+        </button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {filteredSessions.length === 0 ? (
+        {sortedSessions.length === 0 ? (
           <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
             No sessions match "{searchQuery}"
           </div>
         ) : (
-          filteredSessions.map(s => (
+          sortedSessions.map(s => (
             <div key={s.session_id}
               onClick={() => onReopen(s.session_id)}
               style={{
