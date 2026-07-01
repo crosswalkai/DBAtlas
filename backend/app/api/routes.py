@@ -364,11 +364,13 @@ async def share_report(
     # Simulating background task / SMTP send
     logger.info(
         f"[EMAIL SHARE] DBA {dba_uid} sharing Session {session_id} report to {body.recipient}."
+        f" CC: {body.cc or 'None'}."
         f" Custom message: {body.message or 'None'}"
     )
     print(
         f"\n======================================================\n"
         f"EMAIL SENT TO: {body.recipient}\n"
+        f"CC: {body.cc or 'None'}\n"
         f"SUBJECT: DBAtlas Triage Report - Ticket {session.ticket_number} ({session.dbms.upper()})\n"
         f"MESSAGE: {body.message or 'Here is the report.'}\n"
         f"REPORT SUMMARY: {session.final_analysis.summary if session.final_analysis else 'No analysis generated yet.'}\n"
@@ -377,7 +379,7 @@ async def share_report(
 
     return {
         "status": "success",
-        "message": f"Report successfully emailed to {body.recipient}",
+        "message": f"Report successfully emailed to {body.recipient}" + (f" (CC: {body.cc})" if body.cc else ""),
     }
 
 

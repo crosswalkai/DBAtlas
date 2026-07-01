@@ -52,6 +52,7 @@ class CheckpointDecisionRequest(BaseModel):
 
 class ShareReportRequest(BaseModel):
     recipient: str
+    cc: Optional[str] = None
     message: Optional[str] = None
 
 

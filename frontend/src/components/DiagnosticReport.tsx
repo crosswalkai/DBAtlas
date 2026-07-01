@@ -77,6 +77,7 @@ export function DiagnosticReport({
   const [showCheckpointLog, setShowCheckpointLog] = React.useState(false);
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [recipient, setRecipient] = React.useState('');
+  const [cc, setCc] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [sharing, setSharing] = React.useState(false);
   const [shareSuccess, setShareSuccess] = React.useState('');
@@ -103,9 +104,10 @@ export function DiagnosticReport({
     setShareSuccess('');
     setShareError('');
     try {
-      const res = await shareReport(sessionId, recipient, message);
+      const res = await shareReport(sessionId, recipient, cc, message);
       setShareSuccess(res.message || 'Report shared successfully!');
       setRecipient('');
+      setCc('');
       setMessage('');
       setTimeout(() => {
         setShowShareModal(false);
@@ -351,6 +353,22 @@ export function DiagnosticReport({
                   placeholder="e.g. triagedev@company.com"
                   value={recipient}
                   onChange={e => setRecipient(e.target.value)}
+                  style={{
+                    width: '100%', padding: '8px 12px', background: 'var(--surface-0)',
+                    border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+                    color: 'var(--text-primary)', fontSize: 13, fontFamily: 'var(--font-sans)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <SectionLabel>CC (Optional)</SectionLabel>
+                <input
+                  type="text"
+                  placeholder="e.g. lead-dba@company.com, pagerduty@company.com"
+                  value={cc}
+                  onChange={e => setCc(e.target.value)}
                   style={{
                     width: '100%', padding: '8px 12px', background: 'var(--surface-0)',
                     border: '1px solid var(--border)', borderRadius: 'var(--radius)',

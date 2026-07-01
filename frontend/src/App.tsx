@@ -158,28 +158,21 @@ const getAiMove = (board: (string | null)[]): number => {
   const emptyIndices = board.map((val, idx) => val === null ? idx : null).filter((v): v is number => v !== null);
   if (emptyIndices.length === 0) return -1;
 
-  const userPieceCount = board.filter(cell => cell === 'user').length;
-
-  // 1. Find winning move for AI
+  // 1. Find winning move for AI (always take the win if available)
   for (const idx of emptyIndices) {
     const testBoard = [...board];
     testBoard[idx] = 'ai';
     if (checkWin(testBoard) === 'ai') {
-      if (Math.random() < 0.70) return idx;
+      return idx;
     }
   }
 
-  // 2. Find block move for AI
+  // 2. Find block move for AI (always block if the user is about to win)
   for (const idx of emptyIndices) {
     const testBoard = [...board];
     testBoard[idx] = 'user';
     if (checkWin(testBoard) === 'user') {
-      if (userPieceCount === 2) {
-        return idx; // Always block the very first opportunity!
-      } else {
-        // Leave the opportunity open for the user to win on their next turn!
-        continue;
-      }
+      return idx;
     }
   }
 

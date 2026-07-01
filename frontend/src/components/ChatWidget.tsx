@@ -237,7 +237,7 @@ export function ChatWidget({ onClose }: { onClose: () => void }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span>🤖</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>DBAtlas Knowledge Base</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Ask DBAtlas</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 

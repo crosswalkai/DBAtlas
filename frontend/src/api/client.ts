@@ -37,8 +37,8 @@ export const listPlaybooks = (dbms?: string) =>
 export const getHealth = () =>
   api.get('/health').then(r => r.data);
 
-export const shareReport = (sessionId: string, recipient: string, message?: string) =>
-  api.post(`/sessions/${sessionId}/share`, { recipient, message }).then(r => r.data);
+export const shareReport = (sessionId: string, recipient: string, cc?: string, message?: string) =>
+  api.post(`/sessions/${sessionId}/share`, { recipient, cc, message }).then(r => r.data);
 
 export const sendChatMessage = (messages: any[]) =>
   api.post('/chat', { messages }).then(r => r.data);
