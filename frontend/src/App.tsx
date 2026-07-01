@@ -634,6 +634,8 @@ export default function App() {
   const stepRunning = phase === 'executing' || phase === 'evaluating' || phase === 'classifying' || phase === 'analyzing';
   const { elapsed, reset: resetElapsed } = useElapsedTimer(stepRunning);
 
+  const [showTimeoutAlert, setShowTimeoutAlert] = useState(false);
+
   // Step execution client-side auto-timeout (2 minutes limit)
   const lastStepIdRef = useRef<string | null>(null);
   const stepStartTimestampRef = useRef<number | null>(null);
@@ -650,8 +652,9 @@ export default function App() {
         if (stepStartTimestampRef.current) {
           const runTimeSec = Math.floor((Date.now() - stepStartTimestampRef.current) / 1000);
           if (runTimeSec >= 120) {
+            clearInterval(timerId); // halt checking
             console.warn(`Step ${currentStepId} timed out after 120s. Stopping session.`);
-            alert(`Step execution timeout: Step has taken over 2 minutes. Stopping session.`);
+            setShowTimeoutAlert(true);
             stop();
           }
         }
@@ -751,6 +754,32 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--surface-0)' }}>
+
+      {showTimeoutAlert && (
+        <div style={{
+          position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--danger-light)', border: '1px solid var(--danger-border)',
+          borderRadius: 'var(--radius-lg)', padding: '12px 24px', zIndex: 1000,
+          boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center', gap: 12,
+          animation: 'fade-in 0.2s ease-out',
+        }}>
+          <span style={{ fontSize: 14 }}>⚠️</span>
+          <span style={{ fontSize: 13, color: 'var(--danger)', fontWeight: 600 }}>
+            Step execution timeout: The step has taken over 2 minutes. The session was stopped automatically.
+          </span>
+          <button
+            onClick={() => setShowTimeoutAlert(false)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 14, color: 'var(--text-muted)', fontWeight: 'bold',
+              padding: '2px 6px', borderRadius: 'var(--radius-sm)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Topbar */}
       <header style={{

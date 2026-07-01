@@ -14,6 +14,7 @@ interface Scenario {
   question: string;
   server: string;
   ticket: string;
+  playbook_id: string;
 }
 
 const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scenario[]> = {
@@ -22,25 +23,50 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
       label: "Live Slowness Triage (SS-0)",
       question: "Identify why the database is currently sluggish. What active requests, waits, and blocking session chains are dominating?",
       server: "SQLPROD-02",
-      ticket: "INC0032871"
+      ticket: "INC0032871",
+      playbook_id: "sqlserver-live-slowness-triage"
     },
     {
       label: "Plan Regression (SS-1)",
       question: "Our main catalog query is running extremely slow since last night's maintenance. Are we hitting a plan regression?",
       server: "SQLPROD-02",
-      ticket: "INC8827162"
+      ticket: "INC8827162",
+      playbook_id: "sqlserver-plan-regression"
     },
     {
       label: "Deadlock Contention (SS-2)",
       question: "We are getting multiple deadlock errors (Error 1205) on the Orders table in SalesDB. Which session is the victim?",
       server: "SQLPROD-02",
-      ticket: "INC0012052"
+      ticket: "INC0012052",
+      playbook_id: "sqlserver-deadlock-analysis"
     },
     {
       label: "AG Replica Lag (SS-3)",
       question: "The DR replica is falling behind secondary redo queues. Redo is slow and RPO SLA is breached. What is the network throughput?",
       server: "SQLDR-01",
-      ticket: "INC0021831"
+      ticket: "INC0021831",
+      playbook_id: "sqlserver-ag-replica-lag"
+    },
+    {
+      label: "Stale Statistics (SS-5)",
+      question: "Several queries have extremely bad row estimates and are picking wrong join strategies. Are our statistics outdated? Which tables are most affected?",
+      server: "SQLPROD-02",
+      ticket: "INC0043211",
+      playbook_id: "sqlserver-stale-statistics"
+    },
+    {
+      label: "Wait Stats Deviation (SS-7)",
+      question: "The server feels slow this Monday morning compared to last week. Nothing obvious has changed. Can you compare current wait stats against our historical baseline?",
+      server: "SQLPROD-02",
+      ticket: "INC0048871",
+      playbook_id: "sqlserver-wait-stats-deviation"
+    },
+    {
+      label: "Sleeping Sessions (SS-8)",
+      question: "We suspect zombie or long-sleeping sessions are holding locks and blocking other users. What sessions have been sleeping the longest and what locks do they hold?",
+      server: "SQLPROD-02",
+      ticket: "INC0051234",
+      playbook_id: "sqlserver-sleeping-sessions"
     }
   ],
   oracle: [
@@ -48,19 +74,22 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
       label: "Live Slowness Triage",
       question: "Identify why the database is currently sluggish. What active sessions and wait classes are dominating?",
       server: "PRODDB-ORA-01",
-      ticket: "INC0042871"
+      ticket: "INC0042871",
+      playbook_id: "oracle-live-slowness-triage"
     },
     {
       label: "Top Resource Consumers",
       question: "Which SQL statements are consuming the most CPU time and buffer gets from v$sql right now?",
       server: "PRODDB-ORA-01",
-      ticket: "INC0042872"
+      ticket: "INC0042872",
+      playbook_id: "oracle-top-consumers"
     },
     {
       label: "Historical AWR Forensics",
       question: "Reconstruct a database performance spike that occurred last night around 6 PM using AWR snapshots.",
       server: "PRODDB-ORA-01",
-      ticket: "INC0042873"
+      ticket: "INC0042873",
+      playbook_id: "oracle-historical-awr"
     }
   ],
   postgresql: [
@@ -68,13 +97,15 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
       label: "Live Lock Contention (PG-1)",
       question: "Check for any active transactions blocking our update queries on the customer table. Are there any locks?",
       server: "PG-DB-01",
-      ticket: "INC0022871"
+      ticket: "INC0022871",
+      playbook_id: "postgresql-live-slowness-triage"
     },
     {
       label: "Live Slowness Triage (PG-2)",
       question: "Triage active locks, blocking queries, and sequential scan bottlenecks causing performance degradation.",
       server: "PG-DB-01",
-      ticket: "INC0022872"
+      ticket: "INC0022872",
+      playbook_id: "postgresql-live-slowness-triage"
     }
   ],
   mongodb: [
@@ -82,13 +113,15 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
       label: "Live Ops Triage (MG-1)",
       question: "Check current active operations. Are we having slow writes or long-running collection scans on the catalog database?",
       server: "MONGO-01",
-      ticket: "INC0032871"
+      ticket: "INC0032871",
+      playbook_id: "mongodb-live-ops"
     },
     {
       label: "Resource Profiling (MG-2)",
       question: "Identify collections with high storage sizes, index overhead, and operation write latencies.",
       server: "MONGO-01",
-      ticket: "INC0032872"
+      ticket: "INC0032872",
+      playbook_id: "mongodb-top-consumers"
     }
   ]
 };
@@ -105,6 +138,7 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
   const [showAssistant, setShowAssistant] = useState(false);
   const [assistantDbms, setAssistantDbms] = useState<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb'>('sqlserver');
   const [selectedScenario, setSelectedScenario] = useState<number | ''>('');
+  const [pinnedPlaybookId, setPinnedPlaybookId] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
 
   const validateTicket = (val: string) => {
@@ -123,6 +157,7 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
   const handleSelectScenario = (idxVal: string) => {
     if (idxVal === '') {
       setSelectedScenario('');
+      setPinnedPlaybookId(undefined);
       return;
     }
     const idx = parseInt(idxVal, 10);
@@ -132,6 +167,7 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
       setServerName(item.server);
       setTicketNumber(item.ticket);
       setQuestion(item.question);
+      setPinnedPlaybookId(item.playbook_id);
       setTicketError('');
       setShowManual(false);
     }
@@ -146,6 +182,7 @@ export function InputForm({ onSubmit, loading, onNavigate }: Props) {
       question,
       mode,
       use_mock_data: true,
+      ...(pinnedPlaybookId ? { playbook_id: pinnedPlaybookId } : {}),
       ...(showManual ? { dbms_type_override: dbmsOverride } : {}),
     });
   };
