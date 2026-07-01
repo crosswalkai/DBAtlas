@@ -987,8 +987,14 @@ export default function App() {
                             {state.intentCategory && <Badge variant="purple" size="sm">{state.intentCategory.replace(/_/g, ' ')}</Badge>}
                             {state.playbookId && <Badge variant="default" size="sm">{state.playbookId}</Badge>}
                             {isComplete && (() => {
-                              const totalActive = Object.values(stepElapsed).reduce((sum, t) => sum + t.active, 0);
-                              const totalWait = Object.values(stepElapsed).reduce((sum, t) => sum + t.wait, 0);
+                              let totalActive = Object.values(stepElapsed).reduce((sum, t) => sum + t.active, 0);
+                              let totalWait = Object.values(stepElapsed).reduce((sum, t) => sum + t.wait, 0);
+                              
+                              if (totalActive === 0 && state.checkpointLog.length > 0) {
+                                totalActive = state.checkpointLog.reduce((sum, entry) => sum + (entry.active_duration || 0), 0);
+                                totalWait = state.checkpointLog.reduce((sum, entry) => sum + (entry.wait_duration || 0), 0);
+                              }
+
                               return (
                                 <>
                                   <Badge variant="success" size="sm">✓ Complete</Badge>
@@ -999,8 +1005,7 @@ export default function App() {
                                     border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
                                     padding: '1px 6px', marginLeft: 4
                                   }}>
-                                    Total: {formatElapsed(totalActive)} active
-                                    {totalWait > 0 && ` · ${formatElapsed(totalWait)} wait`}
+                                    Total: {formatElapsed(totalActive + totalWait)} ({formatElapsed(totalActive)} active{totalWait > 0 ? ` / ${formatElapsed(totalWait)} wait` : ''})
                                   </span>
                                 </>
                               );

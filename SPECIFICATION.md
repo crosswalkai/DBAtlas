@@ -237,6 +237,22 @@ Two SQL Server playbooks — plan regression and stale statistics — are cross-
 | safe_to_run_first | True only for entry steps |
 | max_rows | Maximum rows passed to the AI at the checkpoint |
 
+## 5.6 Persisted Checkpoint Log Entry Schema
+
+Each execution step is recorded in the session's checkpoint log with the following schema:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| iteration | Integer | The checkpoint index number |
+| step_id | String | The executed step ID |
+| step_description | String | The step description |
+| row_count | Integer | Number of rows returned |
+| claude_assessment | String | AI evaluation narration |
+| routing_decision | String | The routing decision: continue, skip, switch, stop |
+| active_duration | Integer | Time in seconds spent on script execution/AI evaluation |
+| wait_duration | Integer | Time in seconds spent waiting for DBA approval (Interactive Mode) |
+| dba_decision | String | The DBA action: approved, redirected, switched_playbook, stopped |
+| dba_override_reason | String | The reason note provided by the DBA for overrides |
 
 # 6. Diagnostic Data Layer
 
@@ -400,8 +416,8 @@ When the DBA redirects or switches, the AI receives the override context at the 
 | Auto Mode Progress | Live progress indicator updated via SSE |
 | Checkpoint Approval Panel | Interactive Mode control surface at each checkpoint |
 | Checkpoint Rail | Vertical timeline of steps with status and timing |
-| Diagnostic Report | Summary, severity, findings, recommended actions, decision log |
-| Session History | Past sessions with server, ticket, mode, severity, playbook |
+| Diagnostic Report | Tabbed view: Recommendations (summary/findings) and Audit & Explainability (metadata, whitelist verification, and chronological decision trail) |
+| Session History | Past sessions with server, ticket, mode, severity, playbook, and row email sharing trigger |
 | Landing Page Jokes Widget | Dual-column view on logout displaying professional database jokes |
 
 
@@ -413,13 +429,13 @@ A mode badge appears in the report header and session history so it is never amb
 
 The AI’s one-sentence summary is styled larger than the full assessment; the assessment is shown as bullet points for fast scanning.
 
-Each completed step shows its elapsed time; in Interactive Mode this is split into active time and DBA review time.
+Each completed step shows its elapsed time; in Interactive Mode this is split into active time and DBA review time. Timing data is calculated in real time during execution and automatically saved to the backend database to be restored when past runs are loaded. At completion, the total duration next to the Complete badge under the diagnostic question panel displays the sum of active and wait times, with their individual values broken down in parentheses.
 
 A left sidebar holds Diagnostic and History navigation and a clear indicator that mock data is in use.
 
 A Help panel explains every input field; results, analysis, and logs support copy-to-clipboard.
 
-Keyboard shortcut (Enter) approves a checkpoint in Interactive Mode for fast triage. The Help panel and Share Report modals support instant keyboard dismissal using the Escape key.
+Keyboard shortcut (Ctrl+Enter) inside the diagnostic question textarea immediately initiates the diagnostic session in default interactive mode. Keyboard shortcut (Enter) approves a checkpoint in Interactive Mode for fast triage. The Help panel and Share Report modals support instant keyboard dismissal using the Escape key. Both email sharing triggers support adding CC recipients.
 
 A collapsible Demo Assistant panel on the homepage allows instant loading of demo scenarios for SQL Server and Oracle to facilitate rapid testing and product demonstration without referring to external documentation. The Run button changes dynamically to "Let's dig!" on hover, and the homepage displays centered footer links for About, Support, and Privacy details.
 
@@ -436,6 +452,7 @@ When a user logs out, the landing page uses a split-screen layout with the login
 | Operating-mode highlight | Orange (#C2540A on #FFF0E6) |
 | Logo assets | Horizontal, mark, favicon, and app-icon |
 | Monospace | JetBrains Mono for server names, step IDs, and tickets |
+| Mock-data indicator | Styled warning badge (#C2540A orange text on #FFF0E6 light orange bg, with orange-yellow border) |
 
 
 # 11. API Contracts
@@ -449,6 +466,7 @@ When a user logs out, the landing page uses a split-screen layout with the login
 | GET | /api/v1/diagnose/{id}/stream | SSE stream of real-time checkpoint events |
 | POST | /api/v1/diagnose/{id}/checkpoint/{n}/decision | Submits a DBA decision (Interactive Mode) |
 | GET | /api/v1/playbooks | Lists playbooks, filterable by platform and intent |
+| GET | /api/v1/playbooks/{playbook_id} | Returns a single playbook graph definition |
 | GET | /api/v1/session/{id} | Returns a stored session log |
 | GET | /api/v1/health | Health check |
 | POST | /api/v1/sessions/{id}/share | Shares the diagnostic report via email |

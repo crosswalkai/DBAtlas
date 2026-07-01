@@ -165,6 +165,7 @@ export function DiagnosticReport({
                 {playbookId || 'diagnostic'} · {mode} mode
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <SeverityBadge severity={analysis.severity} />
                 <button
                   onClick={() => setShowShareModal(true)}
                   style={{
@@ -181,7 +182,6 @@ export function DiagnosticReport({
                   <span>✉</span>
                   <span>Share Report</span>
                 </button>
-                <SeverityBadge severity={analysis.severity} />
               </div>
             </div>
 

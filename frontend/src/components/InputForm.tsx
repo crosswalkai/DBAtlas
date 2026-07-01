@@ -247,6 +247,20 @@ export function InputForm({ onSubmit, loading }: Props) {
                 <textarea
                   value={question}
                   onChange={e => setQuestion(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                      e.preventDefault();
+                      if (ticketError || !ticketNumber || !serverName || !question) return;
+                      onSubmit({
+                        server_name: serverName,
+                        ticket_number: ticketNumber,
+                        question,
+                        mode: 'interactive',
+                        use_mock_data: true,
+                        ...(showManual ? { dbms_type_override: dbmsOverride } : {}),
+                      });
+                    }
+                  }}
                   placeholder="Describe the issue in plain language..."
                   rows={3}
                   required
