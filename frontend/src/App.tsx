@@ -937,7 +937,25 @@ export default function App() {
                           <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                             {state.intentCategory && <Badge variant="purple" size="sm">{state.intentCategory.replace(/_/g, ' ')}</Badge>}
                             {state.playbookId && <Badge variant="default" size="sm">{state.playbookId}</Badge>}
-                            {isComplete && <Badge variant="success" size="sm">✓ Complete</Badge>}
+                            {isComplete && (() => {
+                              const totalActive = Object.values(stepElapsed).reduce((sum, t) => sum + t.active, 0);
+                              const totalWait = Object.values(stepElapsed).reduce((sum, t) => sum + t.wait, 0);
+                              return (
+                                <>
+                                  <Badge variant="success" size="sm">✓ Complete</Badge>
+                                  <span style={{
+                                    fontSize: 10, color: 'var(--text-muted)',
+                                    fontFamily: 'var(--font-mono)', display: 'inline-flex',
+                                    alignItems: 'center', background: 'var(--surface-2)',
+                                    border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                                    padding: '1px 6px', marginLeft: 4
+                                  }}>
+                                    Total: {formatElapsed(totalActive)} active
+                                    {totalWait > 0 && ` · ${formatElapsed(totalWait)} wait`}
+                                  </span>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                         {isComplete && state.analysis && (
@@ -1119,6 +1137,7 @@ export default function App() {
                     currentIteration={state.currentIteration}
                     maxSteps={5}
                     isPendingApproval={phase === 'pending_approval'}
+                    stepElapsed={stepElapsed}
                   />
                 </>
               )}

@@ -13,12 +13,13 @@ interface Props {
   currentIteration: number;
   maxSteps?: number;
   isPendingApproval?: boolean;
+  stepElapsed?: Record<string, { active: number; wait: number }>;
 }
 
 export function CheckpointRail({
   nodes, playbookId, playbookTitle, dbms, mode,
   stepsSkipped, currentIteration, maxSteps = 5,
-  isPendingApproval = false,
+  isPendingApproval = false, stepElapsed,
 }: Props) {
   const complete = nodes.filter(n => n.state === 'complete').length;
   const progressPct = maxSteps > 0 ? Math.min((complete / maxSteps) * 100, 100) : 0;
@@ -79,7 +80,13 @@ export function CheckpointRail({
       {/* Nodes */}
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: 8 }}>
         {nodes.map((node, i) => (
-          <NodeRow key={node.step_id} node={node} isLast={i === nodes.length - 1} isPendingApproval={isPendingApproval} />
+          <NodeRow 
+            key={node.step_id} 
+            node={node} 
+            isLast={i === nodes.length - 1} 
+            isPendingApproval={isPendingApproval} 
+            timing={stepElapsed ? stepElapsed[node.step_id] : undefined}
+          />
         ))}
 
         {/* Placeholder nodes for remaining steps */}
@@ -111,7 +118,19 @@ export function CheckpointRail({
   );
 }
 
-function NodeRow({ node, isLast, isPendingApproval }: { node: CheckpointNode; isLast: boolean; isPendingApproval: boolean }) {
+function formatElapsed(s: number) {
+  if (s < 60) return `${s}s`;
+  return `${Math.floor(s / 60)}m ${s % 60}s`;
+}
+
+function NodeRow({ 
+  node, isLast, isPendingApproval, timing 
+}: { 
+  node: CheckpointNode; 
+  isLast: boolean; 
+  isPendingApproval: boolean; 
+  timing?: { active: number; wait: number };
+}) {
   const isActive = node.state === 'active';
   const isDone = node.state === 'complete';
 
@@ -155,8 +174,18 @@ function NodeRow({ node, isLast, isPendingApproval }: { node: CheckpointNode; is
           fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 500,
           color: isActive ? 'var(--accent)' : isDone ? 'var(--text-primary)' : 'var(--text-muted)',
           marginBottom: 2,
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
         }}>
-          {node.step_id}
+          <span>{node.step_id}</span>
+          {timing && (
+            <span style={{ fontSize: 9, color: 'var(--text-faint)', marginLeft: 6, fontWeight: 'normal', fontFamily: 'var(--font-sans)' }}>
+              ({timing.wait > 0 
+                ? `${formatElapsed(timing.active)} active, ${formatElapsed(timing.wait)} wait` 
+                : `${formatElapsed(timing.active)} active`})
+            </span>
+          )}
         </div>
         <div style={{ fontSize: 10, color: isActive ? 'var(--accent)' : isDone ? 'var(--success)' : 'var(--text-faint)' }}>
           {isActive ? 'Awaiting approval' : isDone ? 'Complete' : 'Queued'}
