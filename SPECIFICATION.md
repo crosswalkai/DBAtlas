@@ -416,7 +416,7 @@ When the DBA redirects or switches, the AI receives the override context at the 
 | Auto Mode Progress | Live progress indicator updated via SSE |
 | Checkpoint Approval Panel | Interactive Mode control surface at each checkpoint |
 | Checkpoint Rail | Vertical timeline of steps with status and timing |
-| Diagnostic Report | Tabbed view: Recommendations (summary/findings) and Audit & Explainability (metadata, whitelist verification, and chronological decision trail) |
+| Diagnostic Report | Tabbed view: Recommendations (summary/findings) and Audit & Explainability (metadata, whitelist verification, and chronological decision trail) with share via email and HTML download buttons |
 | Session History | Past sessions with server, ticket, mode, severity, playbook, and row email sharing trigger |
 | Landing Page Jokes Widget | Dual-column view on logout displaying professional database jokes |
 
@@ -534,6 +534,8 @@ Full-stack application and self-contained browser version.
 
 Server-Sent Events for real-time checkpoint updates.
 
+Report export natively via styled HTML (.html) file downloads.
+
 ## 14.2 Next Phase
 
 Deploy the full-stack application to GCP Cloud Run with Firestore, Cloud Storage, and Secret Manager.
@@ -545,7 +547,7 @@ Replace mock data with read-only connectors: Oracle, SQL Server, PostgreSQL, Mon
 
 Add parameterized query binding with backend-side validation and query timeouts.
 
-Report export as PDF and shareable read-only link.
+Shareable read-only link.
 
 ## 14.3 Future
 

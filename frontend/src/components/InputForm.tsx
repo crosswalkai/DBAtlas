@@ -6,6 +6,7 @@ import type { DiagnoseRequest, SessionMode, DbmsType } from '../types';
 interface Props {
   onSubmit: (req: DiagnoseRequest) => void;
   loading?: boolean;
+  onNavigate?: (view: 'diagnose' | 'history' | 'about') => void;
 }
 
 interface Scenario {
@@ -74,7 +75,7 @@ const SCENARIOS: Record<'sqlserver' | 'oracle' | 'postgresql' | 'mongodb', Scena
   ]
 };
 
-export function InputForm({ onSubmit, loading }: Props) {
+export function InputForm({ onSubmit, loading, onNavigate }: Props) {
   const [serverName, setServerName] = useState('PRODDB-ORA-01');
   const [ticketNumber, setTicketNumber] = useState('INC0042871');
   const [question, setQuestion] = useState('Troubleshoot what is slowing down this server right now');
@@ -143,16 +144,16 @@ export function InputForm({ onSubmit, loading }: Props) {
       {/* Main input form */}
       <div style={{ width: '100%', maxWidth: 560 }}>
         {/* Header */}
-        <div style={{ marginBottom: 28, textAlign: 'center' }}>
-          <div style={{ marginBottom: 10 }}>
+        <div style={{ marginBottom: 20, textAlign: 'center' }}>
+          <div style={{ marginBottom: 2 }}>
             <img
               src="/DBAtlas-horizontal.svg"
               alt="DBAtlas"
               style={{ height: 52, width: 'auto' }}
             />
           </div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-faint)', letterSpacing: '0.02em', marginBottom: 14 }}>
-            <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>D</span>ata<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>b</span>ase <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>gentic <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>T</span>roub<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>l</span>eshooting <span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>A</span>dvi<span style={{ color: 'var(--brand-teal)', fontWeight: 700 }}>s</span>or
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.03em', marginBottom: 16, textTransform: 'uppercase' }}>
+            Database Agentic Troubleshooting Advisor
           </div>
           <h1 style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             New diagnostic session
@@ -441,9 +442,9 @@ export function InputForm({ onSubmit, loading }: Props) {
         marginTop: 40, borderTop: '1px solid var(--border)', padding: '16px 0 0',
         fontSize: 12,
       }}>
-        <a href="#about" onClick={(e) => { e.preventDefault(); alert("DBAtlas - DBA Copilot v5.0.0\nDatabase Agentic Troubleshooting Advisor"); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>About</a>
-        <a href="#support" onClick={(e) => { e.preventDefault(); alert("For support, contact support@crosswalk.ai or open a ticket in ServiceNow."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Support</a>
-        <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("DBAtlas complies with your corporate database security guidelines and privacy policies. No credentials or data are stored outside your secure environment."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Privacy</a>
+        <a href="#about" onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('about'); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>About</a>
+        <a href="#support" onClick={(e) => { e.preventDefault(); alert("DBAtlas Support\n\n- Email: support@amar.ai\n- Incident: Open a support ticket in ServiceNow."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Support</a>
+        <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("DBAtlas Security & Privacy\n\nComplies with all corporate security policies.\n- No write grants are used.\n- Ad-hoc queries are strictly blocked.\n- Session data is stored on-prem / secure tenant."); }} style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Privacy</a>
       </div>
     </div>
   );

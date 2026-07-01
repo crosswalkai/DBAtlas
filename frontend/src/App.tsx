@@ -9,8 +9,9 @@ import { PlaybookGraph } from './components/PlaybookGraph';
 import { Badge, Spinner, SeverityBadge, Button } from './components/ui';
 import { JOKES } from './utils/jokes';
 import { ChatWidget } from './components/ChatWidget';
+import { AboutView } from './components/AboutView';
 
-type ActiveView = 'diagnose' | 'history';
+type ActiveView = 'diagnose' | 'history' | 'about';
 
 // ── Elapsed timer hook ────────────────────────────────────────────────────────
 function useElapsedTimer(running: boolean) {
@@ -548,9 +549,7 @@ function SideNav({
         </span>
       </button>
 
-      <div style={{ flex: 1 }} />
-
-      {/* History button - moved to bottom */}
+      {/* History button */}
       <button
         onClick={() => setActiveView('history')}
         title="History"
@@ -561,7 +560,7 @@ function SideNav({
           gap: 2, background: activeView === 'history' ? 'var(--accent-light)' : 'transparent',
           color: activeView === 'history' ? 'var(--accent)' : 'var(--text-muted)',
           transition: 'all 0.15s',
-          marginBottom: 10,
+          marginTop: 10,
         }}
       >
         <span style={{ fontSize: 16, lineHeight: 1 }}>🗂</span>
@@ -569,6 +568,8 @@ function SideNav({
           History
         </span>
       </button>
+
+      <div style={{ flex: 1 }} />
 
       {/* Mock data indicator */}
       <div
@@ -723,7 +724,7 @@ export default function App() {
 
       {/* Topbar */}
       <header style={{
-        height: 58, display: 'flex', alignItems: 'center', gap: 10,
+        height: 70, display: 'flex', alignItems: 'center', gap: 10,
         padding: '0 16px', background: 'var(--surface-1)',
         borderBottom: '1px solid var(--border)', flexShrink: 0,
         boxShadow: 'var(--shadow-sm)',
@@ -734,7 +735,7 @@ export default function App() {
           onClick={handleReset}
           title="Go to homepage"
           style={{
-            display: 'flex', alignItems: 'center', gap: 8, marginRight: 4,
+            display: 'flex', alignItems: 'center', gap: 4, marginRight: 4,
             background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
             borderRadius: 'var(--radius)', transition: 'opacity 0.15s',
           }}
@@ -748,8 +749,8 @@ export default function App() {
             /* If on active diagnostic page */
             (activeView === 'diagnose' && !isIdle) ? (
               <>
-                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 22, width: 'auto', flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', marginLeft: 4 }}>
+                <img src="/DBAtlas-horizontal.svg" alt="DBAtlas" style={{ height: 33, width: 'auto', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', marginLeft: -4 }}>
                   Database Agentic Troubleshooting Advisor
                 </span>
               </>
@@ -762,7 +763,6 @@ export default function App() {
             )
           )}
         </button>
-        <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
 
         <div style={{ flex: 1 }} />
 
@@ -886,10 +886,15 @@ export default function App() {
             </div>
           )}
 
+          {/* About view */}
+          {activeView === 'about' && (
+            <AboutView />
+          )}
+
           {/* Diagnostic view */}
           {activeView === 'diagnose' && (
             <>
-              {isIdle && <InputForm onSubmit={run} />}
+              {isIdle && <InputForm onSubmit={run} onNavigate={setActiveView} />}
 
               {!isIdle && (
                 <>

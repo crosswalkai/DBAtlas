@@ -182,6 +182,92 @@ export function DiagnosticReport({
                   <span>✉</span>
                   <span>Share Report</span>
                 </button>
+                <button
+                  onClick={() => {
+                    const findingsHtml = analysis.key_findings.map(f => `<li>${f}</li>`).join('\n');
+                    const actionsHtml = analysis.recommended_actions.map(a => `<li>${a}</li>`).join('\n');
+                    const timelineHtml = checkpointLog.map(entry => `
+                      <div style="margin-bottom: 15px; padding: 12px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px;">
+                        <div style="font-weight: bold; color: #2563EB; font-family: monospace;">Step [${entry.iteration}]: ${entry.step_id} - ${entry.step_description}</div>
+                        <div style="margin: 4px 0; font-size: 13px;"><strong>Rows:</strong> ${entry.row_count}</div>
+                        <div style="margin: 4px 0; font-size: 13px;"><strong>Claude Assessment:</strong> ${entry.claude_assessment}</div>
+                        ${entry.dba_decision ? `<div style="margin: 4px 0; font-size: 13px;"><strong>DBA Decision:</strong> ${entry.dba_decision} (${entry.dba_override_reason || 'No override reason'})</div>` : ''}
+                      </div>
+                    `).join('\n');
+
+                    const htmlContent = `
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <meta charset="utf-8">
+                        <title>DBAtlas Diagnostic Report - ${ticketNumber || 'Session'}</title>
+                        <style>
+                          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+                          h1 { color: #2563EB; border-bottom: 2px solid #2563EB; padding-bottom: 8px; margin-bottom: 20px; }
+                          h2 { color: #1e40af; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+                          .metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f3f4f6; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+                          .metadata div { margin-bottom: 4px; }
+                          .summary { font-size: 16px; font-weight: 500; background: #eff6ff; padding: 15px; border-left: 4px solid #2563EB; border-radius: 4px; margin-bottom: 20px; }
+                          .severity-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: white; }
+                          .severity-critical { background: #dc2626; }
+                          .severity-high { background: #ea580c; }
+                          .severity-medium { background: #d97706; }
+                          .severity-low { background: #059669; }
+                          ul { padding-left: 20px; }
+                          li { margin-bottom: 8px; }
+                        </style>
+                      </head>
+                      <body>
+                        <h1>DBAtlas Diagnostic Report</h1>
+                        <div class="metadata">
+                          <div><strong>Session ID:</strong> ${sessionId}</div>
+                          <div><strong>Server:</strong> ${serverName}</div>
+                          <div><strong>Ticket:</strong> ${ticketNumber}</div>
+                          <div><strong>Playbook:</strong> ${playbookId}</div>
+                          <div><strong>Mode:</strong> ${mode.toUpperCase()}</div>
+                          <div>
+                            <strong>Severity:</strong> 
+                            <span class="severity-badge severity-${analysis.severity}">${analysis.severity}</span>
+                          </div>
+                        </div>
+                        
+                        <h2>Summary</h2>
+                        <div class="summary">${analysis.summary}</div>
+                        
+                        <h2>Key Findings</h2>
+                        <ul>${findingsHtml}</ul>
+                        
+                        <h2>Recommended Actions</h2>
+                        <ul>${actionsHtml}</ul>
+                        
+                        <h2>Audit Trail & Step Execution Log</h2>
+                        <div>${timelineHtml}</div>
+                      </body>
+                      </html>
+                    `;
+
+                    const link = document.createElement('a');
+                    link.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
+                    link.download = `DBAtlas_Report_${ticketNumber || 'Session'}_${sessionId.slice(0, 8)}.html`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  title="Download HTML/PDF Report"
+                  style={{
+                    fontSize: 11, padding: '3px 8px',
+                    background: 'var(--surface-1)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                    color: 'var(--text-muted)',
+                    fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    outline: 'none',
+                  }}
+                >
+                  <span>PDF</span>
+                  <span>📥</span>
+                </button>
               </div>
             </div>
 
