@@ -36,11 +36,17 @@ class PlaybookService:
         dbms: DbmsType,
         intent_category: IntentCategory,
         intent_tags: list[str],
+        recommended_playbook_id: Optional[str] = None,
     ) -> Optional[Playbook]:
         """Find highest-scoring playbook for the given intent."""
         all_playbooks = await self.list_playbooks(dbms=dbms, intent_category=intent_category)
         if not all_playbooks:
             return None
+
+        if recommended_playbook_id:
+            for pb in all_playbooks:
+                if pb.id == recommended_playbook_id:
+                    return pb
 
         # Score by tag overlap
         scored = []

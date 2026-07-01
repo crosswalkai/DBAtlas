@@ -83,6 +83,7 @@ class CheckpointLoop:
                 dbms=dbms,
                 intent_category=intent_result["intent_category"],
                 intent_tags=intent_result.get("intent_tags", []),
+                recommended_playbook_id=intent_result.get("recommended_playbook_id"),
             )
             if not playbook:
                 raise ValueError(
